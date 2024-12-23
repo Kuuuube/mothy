@@ -30,7 +30,7 @@ pub async fn roll(
 
     ctx.send(
         poise::CreateReply::default().embed(serenity::CreateEmbed::default().description(format!(
-            "Rolling {die_size}d{die_count} for **{roll}**! :game_die:"
+            "Rolling **{die_count}d{die_size}** for **{roll}**! :game_die:"
         ))),
     )
     .await?;
