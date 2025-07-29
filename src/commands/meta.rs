@@ -9,7 +9,7 @@ use crate::{Context, Error};
     interaction_context = "Guild|BotDm|PrivateChannel"
 )]
 pub async fn source(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say("<https://github.com/jamesbt365/jamebot>").await?;
+    ctx.say("<https://github.com/jamesbt365/mothy>").await?;
     Ok(())
 }
 
@@ -22,7 +22,7 @@ pub async fn shutdown(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-/// Displays JameBot's uptime
+/// Displays Mothy's uptime
 #[poise::command(
     slash_command,
     prefix_command,

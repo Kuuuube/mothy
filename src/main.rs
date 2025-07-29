@@ -7,7 +7,7 @@ mod event_handler;
 use poise::serenity_prelude as serenity;
 use std::{env::var, sync::Arc, time::Duration};
 
-use jamebot_data::{Command, Context, Data, Error};
+use mothy_data::{Command, Context, Data, Error};
 
 use std::borrow::Cow;
 
@@ -25,7 +25,7 @@ async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
 }
 
 async fn get_prefix(
-    ctx: jamebot_data::PartialContext<'_>,
+    ctx: mothy_data::PartialContext<'_>,
 ) -> Result<Option<Cow<'static, str>>, Error> {
     // If not in a guild, return the default prefix.
     let Some(guild_id) = ctx.guild_id else {
@@ -73,10 +73,9 @@ async fn main() {
     // eventually only use the intents I need.
     let intents = serenity::GatewayIntents::non_privileged()
         | serenity::GatewayIntents::MESSAGE_CONTENT
-        | serenity::GatewayIntents::GUILD_MEMBERS
-        | serenity::GatewayIntents::GUILD_PRESENCES;
+        | serenity::GatewayIntents::GUILD_MEMBERS;
 
-    let token = var("JAMEBOT_TOKEN").expect("JAMEBOT_TOKEN is not set.");
+    let token = var("mothy_TOKEN").expect("MOTHY_TOKEN is not set.");
 
     let mut client = serenity::Client::builder(&token, intents)
         .framework(framework)

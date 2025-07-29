@@ -1,3 +1,5 @@
+#![expect(clippy::cast_possible_truncation)]
+
 use crate::{Context, Error};
 use image::{DynamicImage, ImageBuffer, Rgba};
 use poise::serenity_prelude::{self as serenity, CreateAllowedMentions};
@@ -17,7 +19,7 @@ pub async fn hex(
     colours: String,
 ) -> Result<(), Error> {
     let colour_codes: Vec<&str> = colours
-        .split(|c| c == ' ' || c == ',')
+        .split([' ', ','])
         .filter(|s| !s.is_empty())
         .collect();
 
@@ -44,7 +46,7 @@ pub async fn hex(
 
             ctx.send(
                 poise::CreateReply::new()
-                    .content(format!("Could not parse colour: {}", colour))
+                    .content(format!("Could not parse colour: {colour}"))
                     .allowed_mentions(mentions),
             )
             .await?;

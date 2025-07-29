@@ -1,6 +1,6 @@
 use crate::{Context, Error};
 
-use jamebot_data::Command;
+use mothy_data::Command;
 use poise::serenity_prelude as serenity;
 use to_arraystring::ToArrayString;
 
