@@ -1,6 +1,5 @@
 use crate::{Context, Error};
 use poise::serenity_prelude as serenity;
-use rand::{prelude::Distribution, thread_rng};
 
 /// Roll some dice
 #[poise::command(
@@ -21,10 +20,10 @@ pub async fn roll(
     // TODO: seperate the slash and prefix command so i can parse the prefix one nicely.
 
     let roll: u64 = {
-        let mut rng = thread_rng();
-        let uniform = rand::distributions::Uniform::new_inclusive(1, die_size);
+        use rand::prelude::Distribution;
+        let uniform = rand::distr::Uniform::new_inclusive(1, die_size)?;
         (0..die_count)
-            .map(|_| u64::from(uniform.sample(&mut rng)))
+            .map(|_| u64::from(uniform.sample(&mut rand::rng())))
             .sum()
     };
 

@@ -1,6 +1,5 @@
 use crate::{Context, Error};
 
-use mothy_data::Command;
 use poise::serenity_prelude as serenity;
 use to_arraystring::ToArrayString;
 
@@ -73,6 +72,6 @@ pub async fn urban(
 }
 
 #[must_use]
-pub fn commands() -> [Command; 1] {
+pub fn commands() -> [crate::Command; 1] {
     [urban()]
 }

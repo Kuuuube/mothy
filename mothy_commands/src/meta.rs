@@ -1,6 +1,6 @@
 use crate::{Context, Error};
 
-// Post the link to the bots source code.
+/// Post the link to the bots source code.
 #[poise::command(
     slash_command,
     prefix_command,
@@ -18,7 +18,7 @@ pub async fn source(ctx: Context<'_>) -> Result<(), Error> {
 pub async fn shutdown(ctx: Context<'_>) -> Result<(), Error> {
     ctx.say("**Bailing out, you are on your own. Good luck.**")
         .await?;
-    ctx.framework().shard_manager().shutdown_all().await;
+    ctx.framework().serenity_context.shutdown_all();
     Ok(())
 }
 
@@ -45,29 +45,7 @@ pub async fn uptime(ctx: Context<'_>) -> Result<(), Error> {
 
     Ok(())
 }
-
-/// Show general help or help to a specific command
-// implement a custom one later.
-#[poise::command(prefix_command, track_edits, slash_command, category = "Miscellaneous")]
-pub async fn help(
-    ctx: Context<'_>,
-    #[description = "Specific command to show help about"]
-    #[autocomplete = "poise::builtins::autocomplete_command"]
-    command: Option<String>,
-) -> Result<(), Error> {
-    poise::builtins::help(
-        ctx,
-        command.as_deref(),
-        poise::builtins::HelpConfiguration {
-            ephemeral: true,
-            ..Default::default()
-        },
-    )
-    .await?;
-    Ok(())
-}
-
-#[poise::command(prefix_command, hide_in_help)]
+#[poise::command(prefix_command, hide_in_help, owners_only)]
 async fn register(ctx: Context<'_>) -> Result<(), Error> {
     poise::builtins::register_application_commands_buttons(ctx).await?;
 
@@ -75,6 +53,6 @@ async fn register(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 #[must_use]
-pub fn commands() -> [crate::Command; 5] {
-    [source(), shutdown(), uptime(), help(), register()]
+pub fn commands() -> [crate::Command; 4] {
+    [source(), shutdown(), uptime(), register()]
 }

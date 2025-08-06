@@ -1,70 +1,28 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::wildcard_imports, clippy::unused_async)]
 
-mod commands;
-use commands::*;
-mod event_handler;
 use poise::serenity_prelude as serenity;
-use std::{env::var, sync::Arc, time::Duration};
+use std::sync::{atomic::AtomicBool, Arc};
 
-use mothy_data::{Command, Context, Data, Error};
-
-use std::borrow::Cow;
-
-async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
-    match error {
-        poise::FrameworkError::Command { error, ctx, .. } => {
-            println!("Error in command `{}`: {:?}", ctx.command().name, error);
-        }
-        error => {
-            if let Err(e) = poise::builtins::on_error(error).await {
-                println!("Error while handling error: {e}");
-            }
-        }
-    }
-}
-
-async fn get_prefix(
-    ctx: mothy_data::PartialContext<'_>,
-) -> Result<Option<Cow<'static, str>>, Error> {
-    // If not in a guild, return the default prefix.
-    let Some(guild_id) = ctx.guild_id else {
-        return Ok(Some(Cow::Borrowed("-")));
-    };
-
-    let data = ctx.framework.user_data();
-
-    let config = data.get_guild(guild_id).await;
-
-    if let Some(prefix) = config.prefix {
-        let prefix = if prefix == "-" {
-            Cow::Borrowed("-")
-        } else {
-            Cow::Owned(prefix)
-        };
-
-        Ok(Some(prefix))
-    } else {
-        Ok(Some(Cow::Borrowed("-")))
-    }
-}
+pub use mothy_core::error::Error;
+pub use mothy_core::structs::Command;
 
 #[tokio::main]
 async fn main() {
+    let _ = dotenvy::dotenv();
+
     let options = poise::FrameworkOptions {
-        commands: commands(),
+        commands: mothy_commands::commands(),
         prefix_options: poise::PrefixFrameworkOptions {
-            dynamic_prefix: Some(|ctx| Box::pin(get_prefix(ctx))),
-            edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(
-                Duration::from_secs(3600),
-            ))),
+            prefix: Some(std::borrow::Cow::Borrowed("m")),
+            mention_as_prefix: true,
+            execute_untracked_edits: false,
+            case_insensitive_commands: true,
+            edit_tracker: None,
             ..Default::default()
         },
 
-        on_error: |error| Box::pin(on_error(error)),
-
         skip_checks_for_owners: false,
-        event_handler: |framework, event| Box::pin(event_handler::event_handler(framework, event)),
         ..Default::default()
     };
 
@@ -75,13 +33,20 @@ async fn main() {
         | serenity::GatewayIntents::MESSAGE_CONTENT
         | serenity::GatewayIntents::GUILD_MEMBERS;
 
-    let token = var("mothy_TOKEN").expect("MOTHY_TOKEN is not set.");
+    let token = serenity::Token::from_env("MOTHY_TOKEN").expect("MOTHY_TOKEN is not set.");
 
-    let mut client = serenity::Client::builder(&token, intents)
+    let mut http = serenity::Http::new(token.clone());
+    http.default_allowed_mentions = Some(serenity::CreateAllowedMentions::new());
+
+    let client = serenity::ClientBuilder::new_with_http(token, Arc::new(http), intents)
         .framework(framework)
-        .data(Data::new().await)
-        .await
-        .unwrap();
+        .event_handler(mothy_events::Handler)
+        .data(Arc::new(mothy_core::structs::Data {
+            time_started: std::time::Instant::now(),
+            has_started: AtomicBool::new(false),
+            database: mothy_core::database::Database::init().await,
+        }))
+        .await;
 
-    client.start().await.unwrap();
+    client.unwrap().start().await.unwrap();
 }

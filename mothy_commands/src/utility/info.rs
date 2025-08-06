@@ -39,9 +39,9 @@ pub async fn roleinfo(
 
     let permissions = role.permissions;
     let permissions_title = if let Some(true) = show_all_permissions {
-        "Permissions".to_string()
+        "Permissions"
     } else {
-        "Key Permissions".to_string()
+        "Key Permissions"
     };
 
     let key_permissions = [

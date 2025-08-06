@@ -58,7 +58,7 @@ pub async fn hex(
         let mut buffer = Vec::new();
         let mut cursor = std::io::Cursor::new(&mut buffer);
         DynamicImage::ImageRgba8(combined_image)
-            .write_to(&mut cursor, image::ImageOutputFormat::Png)
+            .write_to(&mut cursor, image::ImageFormat::Png)
             .unwrap();
         buffer
     };

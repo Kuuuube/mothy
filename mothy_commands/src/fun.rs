@@ -1,7 +1,7 @@
 use crate::{Context, Error};
 use poise::serenity_prelude as serenity;
 
-use rand::{seq::SliceRandom, thread_rng};
+use rand::seq::IndexedRandom;
 
 const HUGS: &[&str] = &[
     // Link's additions
@@ -61,7 +61,7 @@ pub async fn hug(
     #[description = "The user to hug!! :3"] user: serenity::User,
 ) -> Result<(), Error> {
     let hug = {
-        let mut rng = thread_rng();
+        let mut rng = rand::rng();
         (*HUGS.choose(&mut rng).unwrap()).to_string()
     };
 
