@@ -4,6 +4,17 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow.workspace = true
+arrayvec.workspace = true
+bitflags = "2.9.1"
+bool_to_bitflags = "0.1.3"
+chrono.workspace = true
+dashmap.workspace = true
+fancy-regex = "0.16.1"
 poise.workspace = true
+regex = "1.11.1"
+serde.workspace = true
+serde_json.workspace = true
 serenity.workspace = true
 sqlx.workspace = true
+tokio.workspace = true

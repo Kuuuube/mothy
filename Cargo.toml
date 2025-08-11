@@ -18,11 +18,15 @@ serenity.workspace = true
 dotenvy = "0.15.7"
 
 [workspace.dependencies]
-sqlx = { version = "0.8", features = ["macros", "runtime-tokio-rustls", "postgres"] }
+sqlx = { version = "0.8", features = ["macros", "runtime-tokio-rustls", "postgres", "time"] }
 tokio = { version = "1.29", features = ["macros", "signal", "rt-multi-thread"] }
 to-arraystring = "0.2"
 serde_json = "1"
 serde = "1"
+dashmap = "6"
+arrayvec = "0.7"
+anyhow = "1"
+chrono = "0.4"
 
 
 [workspace.dependencies.serenity]

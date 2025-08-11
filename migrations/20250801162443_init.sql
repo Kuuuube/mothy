@@ -1,9 +1,9 @@
 CREATE TABLE guilds (
     guild_id BIGINT PRIMARY KEY,
     banned BOOLEAN NOT NULL DEFAULT FALSE,
-    prefix VARCHAR(6),
     rejoined BOOLEAN NOT NULL DEFAULT FALSE,
-    feature_flags INT NOT NULL DEFAULT 0
+    prefix VARCHAR(6),
+    feature_flags SMALLINT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE users (
@@ -63,6 +63,8 @@ CREATE UNIQUE INDEX emote_name_null_discord_id_unique
     ON emotes (emote_name)
     WHERE discord_id IS NULL;
 
+CREATE TYPE EmoteUsageType AS ENUM ('message', 'reaction');
+
 CREATE TABLE emote_usage (
     message_id BIGINT NOT NULL,
     guild_id BIGINT NOT NULL REFERENCES guilds(guild_id),
@@ -96,7 +98,7 @@ CREATE TABLE blocked_checked_stickers (
 
 CREATE TABLE dm_activity (
     guild_id BIGINT NOT NULL REFERENCES guilds(guild_id),
-    user_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL REFERENCES users(user_id),
     last_announced TIMESTAMPTZ,
     until TIMESTAMPTZ,
     count SMALLINT,
@@ -110,9 +112,13 @@ CREATE TABLE dm_activity_settings (
     retention_days SMALLINT DEFAULT NULL
 );
 
-CREATE INDEX idx_role_snapshots_user_guild ON role_snapshots(user_id, guild_id);
+CREATE TABLE role_snapshots (
+    user_id BIGINT NOT NULL REFERENCES users(user_id),
+    guild_id INT NOT NULL REFERENCES guilds(guild_id),
+    roles BIGINT[],
+    PRIMARY KEY (guild_id, user_id)
+);
 
-CREATE TYPE EmoteUsageType AS ENUM ('message', 'reaction');
 
 CREATE TABLE regex_triggers (
     id BIGSERIAL PRIMARY KEY,
@@ -122,19 +128,21 @@ CREATE TABLE regex_triggers (
     trigger_context SMALLINT NOT NULL DEFAULT 1,
     trigger_metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     is_recursive BOOLEAN NOT NULL DEFAULT TRUE,
-    enabled BOOLEAN NOT NULL DEFAULT TRUE
+    is_fancy BOOLEAN NOT NULL,
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE regex_blacklist_channels (
-    regex_id BIGINT NOT NULL REFERENCES regex_triggers(id) ON DELETE CASCADE,
+CREATE TABLE regex_global_denylist_channels (
+    guild_id BIGINT NOT NULL REFERENCES guilds(guild_id) ON DELETE CASCADE,
     channel_id BIGINT NOT NULL,
     is_recursive BOOLEAN NOT NULL DEFAULT TRUE,
-    PRIMARY KEY (regex_id, channel_id)
+    PRIMARY KEY (guild_id, channel_id)
 );
+
 
 CREATE INDEX idx_regex_triggers_guild_id ON regex_triggers(guild_id);
 CREATE INDEX idx_regex_triggers_channel_id ON regex_triggers(channel_id);
-CREATE INDEX idx_regex_triggers_enabled_true ON regex_triggers(guild_id) WHERE enabled = TRUE;
+CREATE INDEX idx_regex_triggers_enabled_true ON regex_triggers(guild_id) WHERE is_enabled = TRUE;
 
 CREATE TABLE autoresponse_settings (
     guild_id BIGINT PRIMARY KEY REFERENCES guilds(guild_id) ON DELETE CASCADE,
@@ -154,30 +162,29 @@ CREATE TABLE ocr_analytics (
     processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE mod_role_permissions (
+CREATE TABLE mod_roles (
     guild_id BIGINT NOT NULL REFERENCES guilds(guild_id) ON DELETE CASCADE,
     role_id BIGINT NOT NULL PRIMARY KEY,
-    permissions BIGINT NOT NULL DEFAULT 0
+    permissions SMALLINT NOT NULL DEFAULT 0
 );
 
-CREATE INDEX idx_mod_role_permissions_guild_id ON mod_role_permissions(guild_id);
+CREATE INDEX idx_mod_roles_guild_id ON mod_roles(guild_id);
 
 CREATE TABLE automod_rule_overrides (
     rule_id TEXT NOT NULL,
-    role_id BIGINT NOT NULL REFERENCES mod_role_permissions(role_id) ON DELETE CASCADE,
+    role_id BIGINT NOT NULL REFERENCES mod_roles(role_id) ON DELETE CASCADE,
     is_allowed BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (rule_id, role_id)
 );
 
-CREATE TYPE StickyRoleListMode AS ENUM ('none', 'allowlist', 'denylist');
+CREATE TYPE StickyRoleMode AS ENUM ('none', 'allowlist', 'denylist');
 
 CREATE TABLE sticky_roles_settings (
     guild_id BIGINT PRIMARY KEY REFERENCES guilds(guild_id) ON DELETE CASCADE,
-    roles BIGINT[] NOT NULL DEFAULT '{}',
-    allowlist_roles BIGINT[] DEFAULT '{}',
-    denylist_roles BIGINT[] DEFAULT '{}',
-    list_mode StickyRoleListMode NOT NULL DEFAULT 'allowlist',
-    enabled BOOLEAN NOT NULL DEFAULT TRUE
+    allowlist_roles BIGINT[] NOT NULL DEFAULT '{}',
+    denylist_roles BIGINT[] NOT NULL DEFAULT '{}',
+    mode StickyRoleMode NOT NULL DEFAULT 'allowlist',
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE sticky_roles (
@@ -185,7 +192,7 @@ CREATE TABLE sticky_roles (
     guild_id BIGINT NOT NULL REFERENCES guilds(guild_id),
     roles BIGINT[] NOT NULL,
     last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (user_id, guild_id),
+    PRIMARY KEY (user_id, guild_id)
 );
 
 CREATE TYPE COTDColourMode AS ENUM ('random', 'static');
@@ -198,9 +205,10 @@ CREATE TABLE cotd_role_settings (
     suffix_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     colour_mode COTDColourMode NOT NULL DEFAULT 'random',
     icon_pairing_mode COTDIconPairingMode NOT NULL DEFAULT 'paired',
-    colours INT[] DEFAULT NULL,
-    icons TEXT[] DEFAULT NULL,
+    colours JSONB NOT NULL DEFAULT '[]',
+    icons TEXT[] NOT NULL DEFAULT '{}',
     svg_target_colour INT DEFAULT NULL,
+    rotation_time TIME NOT NULL DEFAULT '00:00:00',
     PRIMARY KEY (guild_id, role_id)
 );
 
