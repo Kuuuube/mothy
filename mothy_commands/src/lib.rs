@@ -26,3 +26,38 @@ pub fn commands() -> Vec<crate::Command> {
 
     commands
 }
+
+pub async fn try_strip_prefix<'a>(
+    ctx: &serenity::all::Context,
+    msg: &'a serenity::all::Message,
+) -> Result<Option<(&'a str, &'a str)>, Error> {
+    let stock_prefix = "m";
+
+    let Some(guild_id) = msg.guild_id else {
+        if msg.content.strip_prefix(stock_prefix).is_some() {
+            return Ok(Some(msg.content.split_at(stock_prefix.len())));
+        } else {
+            return Ok(None);
+        }
+    };
+
+    let data = ctx.data_ref::<Data>();
+
+    if let Some(prefix) = data
+        .database
+        .guild_handler
+        .get(guild_id)
+        .await
+        .expect("TODO: anyhow to error?")
+        .prefix
+        && msg.content.strip_prefix(prefix.as_str()).is_some()
+    {
+        return Ok(Some(msg.content.split_at(prefix.len())));
+    };
+
+    if msg.content.strip_prefix(stock_prefix).is_some() {
+        return Ok(Some(msg.content.split_at(stock_prefix.len())));
+    }
+
+    Ok(None)
+}

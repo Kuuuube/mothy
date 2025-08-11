@@ -14,7 +14,9 @@ async fn main() {
     let options = poise::FrameworkOptions {
         commands: mothy_commands::commands(),
         prefix_options: poise::PrefixFrameworkOptions {
-            prefix: Some(std::borrow::Cow::Borrowed("m")),
+            stripped_dynamic_prefix: Some(|ctx, msg, _| {
+                Box::pin(mothy_commands::try_strip_prefix(ctx, msg))
+            }),
             mention_as_prefix: true,
             execute_untracked_edits: false,
             case_insensitive_commands: true,

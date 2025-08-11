@@ -1,6 +1,8 @@
 pub use mothy_core::{error::Error, structs::Data};
 use serenity::all::{self as serenity, FullEvent};
 
+mod messages;
+
 pub struct Handler;
 
 #[serenity::async_trait]
@@ -13,7 +15,6 @@ impl serenity::EventHandler for Handler {
 }
 
 pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result<(), Error> {
-    #[expect(clippy::single_match)]
     match event {
         FullEvent::Ready { data_about_bot, .. } => {
             let data = ctx.data_ref::<Data>();
@@ -27,6 +28,9 @@ pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result
             {
                 println!("Logged in as {}", data_about_bot.user.tag());
             }
+        }
+        FullEvent::Message { new_message, .. } => {
+            messages::on_message(ctx, new_message).await;
         }
         _ => (),
     }
