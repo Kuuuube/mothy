@@ -61,4 +61,8 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
 
 ### Mothy
 
-1. Run `mregister` to register commands.
+1. Invite the bot somewhere
+
+    Example (replace `{BOT_ID_HERE}`): https://discord.com/oauth2/authorize?client_id={BOT_ID_HERE}&scope=bot%20applications.commands&permissions=8
+
+2. Run `mregister` to register commands.
