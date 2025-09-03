@@ -53,6 +53,12 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
     cargo install sqlx-cli
     ```
 
+    Note: On Debian and Ubuntu try this if there are weird openssl errors:
+
+    ```
+    apt-get install libssl-dev pkg-config
+    ```
+
 2. Copy `.end_template` to `.env` and input the following:
 
     ```
