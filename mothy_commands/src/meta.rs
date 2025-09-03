@@ -9,7 +9,7 @@ use crate::{Context, Error};
     interaction_context = "Guild|BotDm|PrivateChannel"
 )]
 pub async fn source(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say("<https://github.com/jamesbt365/mothy>").await?;
+    ctx.say("Original: <https://github.com/jamesbt365/mothy>, Fork: <https://github.com/Kuuuube/mothy>").await?;
     Ok(())
 }
 
