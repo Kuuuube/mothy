@@ -45,7 +45,7 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
     cargo install sqlx-cli
     ```
 
-2. Create `.env` and input the following:
+2. Copy `.end_template` to `.env` and input the following:
 
     ```
     DATABASE_URL=postgres://postgres@localhost/postgres
@@ -61,8 +61,10 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
 
 ### Mothy
 
-1. Invite the bot somewhere
+1. Add your bot token to `MOTHY_TOKEN` in `.env`.
+
+2. Invite the bot somewhere
 
     Example (replace `{BOT_ID_HERE}`): https://discord.com/oauth2/authorize?client_id={BOT_ID_HERE}&scope=bot%20applications.commands&permissions=8
 
-2. Run `mregister` to register commands.
+3. Run `mregister` to register commands.
