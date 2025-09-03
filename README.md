@@ -73,6 +73,20 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
     cargo sqlx migrate run
     ```
 
+    Note: Debian and Ubuntu REALLY REALLY REALLY want your database to have a password and will beat you over the head with errors until you just give up and set one. Here's how to do that:
+
+    ```
+    sudo -u postgres psql
+    ALTER USER postgres PASSWORD '{password}'; # replace {password} with your password
+    ```
+
+    Edit the `DATABASE_URL` in .env to include the password (replace {password} with your password):
+
+    ```
+    DATABASE_URL=postgres://postgres:{password}@localhost/postgres
+    ```
+
+
 ### Mothy
 
 1. Add your bot token to `MOTHY_TOKEN` in `.env`.
