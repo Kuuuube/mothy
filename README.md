@@ -61,3 +61,4 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
 
 ### Mothy
 
+1. Run `mregister` to register commands.
