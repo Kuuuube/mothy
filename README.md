@@ -53,10 +53,10 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
 
     Note: Replace the `postgres` on the end with whatever your database name is if your are not using the default.
 
-3. Create the database structure:
+3. Init database:
 
     ```
-    psql -U postgres -d postgres -a -f ./migrations/20250801162443_init.sql
+    cargo sqlx migrate run
     ```
 
 ### Mothy
