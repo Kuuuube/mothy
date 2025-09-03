@@ -22,6 +22,14 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
     initdb -D /var/lib/postgres/data
     ```
 
+    Note: On Debian and Ubuntu this command may not be available by default due to opinionated packaging that goes against postgres's documentation.
+
+    The database may already be set up and ready to go after installing the package. But if not, add the following to `~/.bashrc` and `source ~/.bashrc`:
+
+    ```
+    export PATH=$PATH:/usr/lib/postgresql/{version}/bin/
+    ```
+
 4. Start the database server:
 
     ```
