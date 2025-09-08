@@ -71,8 +71,3 @@ pub async fn hug(
 
     Ok(())
 }
-
-#[must_use]
-pub fn commands() -> [crate::Command; 1] {
-    [hug()]
-}
