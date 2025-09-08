@@ -11,7 +11,7 @@ pub use mothy_core::{
 pub fn commands() -> Vec<crate::Command> {
     let mut commands: Vec<crate::Command> = meta::commands()
         .into_iter()
-        .chain(fun::commands())
+        .chain(fun::hug::commands())
         .chain(utility::commands())
         .collect();
 
