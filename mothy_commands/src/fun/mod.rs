@@ -1,6 +1,10 @@
 pub mod hug;
 
 #[must_use]
-pub fn commands() -> [crate::Command; 1] {
-    [hug::hug()]
+pub fn commands() -> Vec<crate::Command> {
+    {
+        hug::commands()
+            .into_iter()
+            .collect()
+    }
 }
