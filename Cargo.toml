@@ -27,6 +27,7 @@ dashmap = "6"
 arrayvec = "0.7"
 anyhow = "1"
 chrono = "0.4"
+zstd-safe = { version = "7.1.0", features = ["experimental", "std"] }
 
 
 [workspace.dependencies.serenity]

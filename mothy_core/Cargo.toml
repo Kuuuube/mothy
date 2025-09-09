@@ -18,3 +18,4 @@ serde_json.workspace = true
 serenity.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
+zstd-safe = { version = "7.1.0", features = ["experimental", "std"] }
