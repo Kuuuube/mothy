@@ -12,7 +12,7 @@ use rand::seq::IndexedRandom;
     category = "Fun",
     user_cooldown = "4",
 )]
-pub async fn james_score(
+pub async fn jamesscore(
     ctx: Context<'_>,
 ) -> Result<(), Error> {
     let scores = &ctx.data().james_scores;
@@ -54,5 +54,5 @@ fn format_duration_secs(duration: u64) -> String {
 
 #[must_use]
 pub fn commands() -> [crate::Command; 1] {
-    [james_score()]
+    [jamesscore()]
 }
