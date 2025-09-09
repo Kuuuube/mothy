@@ -23,8 +23,8 @@ pub async fn jamesscore(
 
     let title = format!("{} - {} [{}] [{}★]", score.beatmap.beatmapset.artist, score.beatmap.beatmapset.title, score.beatmap.version, score.beatmap.difficulty_rating);
     let mods_string = if score.mods.len() > 0 { format!("+{}", score.mods.join(""))} else { "NM".to_owned() };
-    let description_line_0 = format!("{} • {} • {:.2}% • {}", format_score_rank(score.rank.clone()), mods_string, score.accuracy * 100.0, format_score_date(score.created_at.clone()));
-    let description_line_1 = format!("{}pp • {}x/{}x • {:.2}% • {}❌", score.pp.unwrap_or_default(), score.max_combo, score.beatmap.max_combo, score.accuracy * 100.0, score.statistics.count_miss.unwrap_or_default());
+    let description_line_0 = format!("**{}** • **{}** • **{:.2}%** • {}", format_score_rank(score.rank.clone()), mods_string, score.accuracy * 100.0, format_score_date(score.created_at.clone()));
+    let description_line_1 = format!("**{}pp** • **{}x**/{}x • {:.2}% • {}❌ • Playcount: {}", score.pp.unwrap_or_default(), score.max_combo, score.beatmap.max_combo, score.accuracy * 100.0, score.statistics.count_miss.unwrap_or_default(), score.played_count);
     let description_line_2 = format!("{} • CS: {} AR: {} OD: {} HP: {} • BPM: {}", format_duration_secs(score.beatmap.total_length), score.beatmap.cs, score.beatmap.ar, score.beatmap.accuracy, score.beatmap.drain, score.beatmap.bpm);
     let description_line_3 = format!("ScoreId: {} • MapId: {} • SetId: {}", score.id, score.beatmap.id, score.beatmap.beatmapset.id);
     let description = format!("{}\n{}\n{}\n{}", description_line_0, description_line_1, description_line_2, description_line_3);
