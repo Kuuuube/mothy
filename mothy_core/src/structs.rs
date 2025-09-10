@@ -13,25 +13,58 @@ pub struct Data {
 
 #[derive(Serialize, Deserialize)]
 pub struct ScoresData {
-    pub accuracy: f64,
-    pub best_id: Option<i128>,
-    pub created_at: String,
-    pub id: i128,
-    pub max_combo: i128,
-    pub mode: String,
-    pub mode_int: i128,
-    pub mods: Vec<String>,
-    pub passed: bool,
-    pub perfect: bool,
-    pub pp: Option<f64>,
-    pub rank: String,
-    pub replay: bool,
-    pub score: i128,
+    pub classic_total_score: i128,
+    pub preserve: bool,
+    pub processed: bool,
+    pub ranked: bool,
+    pub maximum_statistics: MaximumStatistics,
+    pub mods: Vec<Mod>,
     pub statistics: Statistics,
-    pub user_id: i128,
     pub beatmap_id: i128,
+    pub best_id: Option<i128>,
+    pub id: i128,
+    pub rank: String,
+    pub user_id: i128,
+    pub accuracy: f64,
+    pub ended_at: String,
+    pub has_replay: bool,
+    pub is_perfect_combo: bool,
+    pub legacy_perfect: bool,
+    pub legacy_score_id: Option<i128>,
+    pub legacy_total_score: Option<i128>,
+    pub max_combo: i128,
+    pub passed: bool,
+    pub pp: Option<f64>,
+    pub ruleset_id: i128,
+    pub started_at: Option<String>,
+    pub total_score: i128,
+    pub replay: bool,
     pub played_count: i128,
     pub beatmap: Beatmap,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Statistics {
+    pub great: Option<i128>,
+    pub ok: Option<i128>,
+    pub meh: Option<i128>,
+    pub miss: Option<i128>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct MaximumStatistics {
+    pub great: Option<i128>,
+    pub ignore_hit: Option<i128>,
+    pub large_bonus: Option<i128>,
+    pub small_bonus: Option<i128>,
+    pub large_tick_hit: Option<i128>,
+    pub slider_tail_hit: Option<i128>,
+    pub legacy_combo_increase: Option<i128>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Mod {
+    pub acronym: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -40,16 +73,6 @@ pub enum ModeInt {
     Taiko = 1,
     Catch = 2,
     Mania = 3,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Statistics {
-    pub count_100: Option<i128>,
-    pub count_300: Option<i128>,
-    pub count_50: Option<i128>,
-    pub count_geki: Option<i128>,
-    pub count_katu: Option<i128>,
-    pub count_miss: Option<i128>,
 }
 
 #[derive(Serialize, Deserialize)]
