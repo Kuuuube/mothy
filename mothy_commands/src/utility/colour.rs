@@ -71,12 +71,13 @@ pub async fn hex(
 }
 
 fn hex_to_rgba(hex_color: &str) -> Result<[u8; 4], Error> {
-    let hex_color = hex_color.trim_start_matches('#');
+    let replacements = ["#", "0x"];
+    let hex_color = replacements.iter().fold(hex_color.to_string(), |acc, x| acc.replacen(x, "", 1));
 
     let trimmed_hex_color = if hex_color.len() > 6 {
         &hex_color[0..6]
     } else {
-        hex_color
+        &hex_color
     };
 
     let normalized_hex_color = if trimmed_hex_color.len() < 6 {
