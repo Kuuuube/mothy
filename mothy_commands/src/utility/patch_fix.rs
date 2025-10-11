@@ -17,15 +17,25 @@ pub async fn patch_fix(
     #[rest]
     patch: serenity::Attachment,
 ) -> Result<(), Error> {
+    const EIGHT_MB: u32 = 8000000;
+    let mentions = CreateAllowedMentions::new()
+        .everyone(false)
+        .all_roles(false)
+        .all_users(false);
+
+    if patch.size > EIGHT_MB {
+        ctx.send(
+            poise::CreateReply::new()
+                .content(format!("Attachment too large"))
+                .allowed_mentions(mentions),
+        )
+        .await?;
+        return Ok(());
+    }
     let patch_data = patch.download().await?;
     let fixed_patch = match fix_patch(patch_data) {
         Ok(ok) => ok,
         Err(_) => {
-            let mentions = CreateAllowedMentions::new()
-                .everyone(false)
-                .all_roles(false)
-                .all_users(false);
-
             ctx.send(
                 poise::CreateReply::new()
                     .content(format!("Could not fix patch"))
