@@ -88,14 +88,20 @@ fn hex_to_rgba(hex_color: &str) -> Result<[u8; 4], Error> {
         .iter()
         .fold(hex_color.to_string(), |acc, x| acc.replacen(x, "", 1));
 
-    let trimmed_hex_color = if hex_color.len() > 6 {
-        &hex_color[0..6]
+    let trimmed_hex_color = if hex_color.len() > 8 {
+        &hex_color[0..8]
+    } else if hex_color.len() == 3 || hex_color.len() == 4 {
+        // 3 digit hex shorthand duplicates the digits to become 6 digits, 4 digit is the same but shorthand of 8 digits
+        // FC0 <-> FFCC00
+        &hex_color.chars().fold("".to_string(), |acc: String, x| {
+            format!("{}{}{}", acc, x, x)
+        })
     } else {
         &hex_color
     };
 
-    let normalized_hex_color = if trimmed_hex_color.len() < 6 {
-        format!("{trimmed_hex_color:0<6}")
+    let normalized_hex_color = if trimmed_hex_color.len() < 8 {
+        format!("{trimmed_hex_color:0<6}FF")
     } else {
         trimmed_hex_color.to_string()
     };
@@ -103,8 +109,9 @@ fn hex_to_rgba(hex_color: &str) -> Result<[u8; 4], Error> {
     let r = u8::from_str_radix(&normalized_hex_color[0..2], 16)?;
     let g = u8::from_str_radix(&normalized_hex_color[2..4], 16)?;
     let b = u8::from_str_radix(&normalized_hex_color[4..6], 16)?;
+    let a = u8::from_str_radix(&normalized_hex_color[6..8], 16)?;
 
-    Ok([r, g, b, 255]) // Set alpha to 255 (fully opaque)
+    Ok([r, g, b, a])
 }
 
 #[must_use]
