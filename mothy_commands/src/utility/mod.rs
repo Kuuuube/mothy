@@ -4,6 +4,7 @@ pub mod info;
 pub mod random;
 pub mod urban;
 pub mod patch_fix;
+mod udev;
 
 #[must_use]
 pub fn commands() -> Vec<crate::Command> {
@@ -15,6 +16,7 @@ pub fn commands() -> Vec<crate::Command> {
             .chain(urban::commands())
             .chain(avatar::commands())
             .chain(patch_fix::commands())
+            .chain(udev::commands())
             .collect()
     }
 }
