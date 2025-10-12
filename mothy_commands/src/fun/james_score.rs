@@ -11,11 +11,9 @@ use rand::seq::IndexedRandom;
     install_context = "Guild|User",
     interaction_context = "Guild|BotDm|PrivateChannel",
     category = "Fun",
-    user_cooldown = "4",
+    user_cooldown = "4"
 )]
-pub async fn jamesscore(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub async fn jamesscore(ctx: Context<'_>) -> Result<(), Error> {
     let scores = &ctx.data().james_scores;
     let score = {
         let mut rng = rand::rng();
@@ -24,13 +22,52 @@ pub async fn jamesscore(
 
     let game_version = game_version(&score.mods);
 
-    let title = format!("{} - {} [{}] [{}★]", score.beatmap.beatmapset.artist, score.beatmap.beatmapset.title, score.beatmap.version, score.beatmap.difficulty_rating);
-    let description_line_0 = format!("**{}** • **{}** • **{:.2}%** • {} • {}", format_score_rank(score.rank.clone()), format_mods_string(&score.mods, &game_version), score.accuracy * 100.0, format_score_date(score.ended_at.clone()), game_version);
-    let description_line_1 = format!("**{}pp** • **{}x**/{}x • {:.2}% • {}❌ • Playcount: {}", score.pp.unwrap_or_default(), score.max_combo, score.beatmap.max_combo, score.accuracy * 100.0, score.statistics.miss.unwrap_or_default(), score.played_count);
-    let description_line_2 = format!("{} • CS: {} AR: {} OD: {} HP: {} • BPM: {}", format_duration_secs(score.beatmap.total_length), score.beatmap.cs, score.beatmap.ar, score.beatmap.accuracy, score.beatmap.drain, score.beatmap.bpm);
-    let description_line_3 = format!("ScoreId: {} • MapId: {} • SetId: {}", score.id, score.beatmap.id, score.beatmap.beatmapset.id);
-    let description = format!("{}\n{}\n{}\n{}", description_line_0, description_line_1, description_line_2, description_line_3);
-    let embed = serenity::CreateEmbed::default().title(title).url(score.beatmap.url.clone()).description(description).thumbnail(score.beatmap.beatmapset.covers.list.clone());
+    let title = format!(
+        "{} - {} [{}] [{}★]",
+        score.beatmap.beatmapset.artist,
+        score.beatmap.beatmapset.title,
+        score.beatmap.version,
+        score.beatmap.difficulty_rating
+    );
+    let description_line_0 = format!(
+        "**{}** • **{}** • **{:.2}%** • {} • {}",
+        format_score_rank(score.rank.clone()),
+        format_mods_string(&score.mods, &game_version),
+        score.accuracy * 100.0,
+        format_score_date(score.ended_at.clone()),
+        game_version
+    );
+    let description_line_1 = format!(
+        "**{}pp** • **{}x**/{}x • {:.2}% • {}❌ • Playcount: {}",
+        score.pp.unwrap_or_default(),
+        score.max_combo,
+        score.beatmap.max_combo,
+        score.accuracy * 100.0,
+        score.statistics.miss.unwrap_or_default(),
+        score.played_count
+    );
+    let description_line_2 = format!(
+        "{} • CS: {} AR: {} OD: {} HP: {} • BPM: {}",
+        format_duration_secs(score.beatmap.total_length),
+        score.beatmap.cs,
+        score.beatmap.ar,
+        score.beatmap.accuracy,
+        score.beatmap.drain,
+        score.beatmap.bpm
+    );
+    let description_line_3 = format!(
+        "ScoreId: {} • MapId: {} • SetId: {}",
+        score.id, score.beatmap.id, score.beatmap.beatmapset.id
+    );
+    let description = format!(
+        "{}\n{}\n{}\n{}",
+        description_line_0, description_line_1, description_line_2, description_line_3
+    );
+    let embed = serenity::CreateEmbed::default()
+        .title(title)
+        .url(score.beatmap.url.clone())
+        .description(description)
+        .thumbnail(score.beatmap.beatmapset.covers.list.clone());
     ctx.send(poise::CreateReply::default().embed(embed)).await?;
 
     Ok(())

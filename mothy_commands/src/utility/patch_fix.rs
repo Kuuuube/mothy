@@ -43,10 +43,11 @@ pub async fn patch_fix(
             )
             .await?;
             return Ok(());
-        },
+        }
     };
 
-    let attachment = serenity::CreateAttachment::bytes(fixed_patch, format!("fixed_{}", patch.filename));
+    let attachment =
+        serenity::CreateAttachment::bytes(fixed_patch, format!("fixed_{}", patch.filename));
     ctx.send(poise::CreateReply::default().attachment(attachment))
         .await?;
 

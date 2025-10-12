@@ -1,10 +1,10 @@
 pub mod avatar;
 pub mod colour;
 pub mod info;
-pub mod random;
-pub mod urban;
 pub mod patch_fix;
+pub mod random;
 mod udev;
+pub mod urban;
 
 #[must_use]
 pub fn commands() -> Vec<crate::Command> {

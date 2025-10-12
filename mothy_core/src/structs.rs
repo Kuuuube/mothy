@@ -140,7 +140,7 @@ pub struct BeatmapSet {
     pub rating: f64,
     pub storyboard: bool,
     pub submitted_date: String,
-    pub tags:String,
+    pub tags: String,
 }
 
 #[derive(Serialize, Deserialize)]

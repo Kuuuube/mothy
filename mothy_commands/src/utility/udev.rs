@@ -2,8 +2,8 @@ use crate::{Context, Error};
 
 use std::fmt::Write;
 
-use poise::serenity_prelude::{CreateAttachment, CreateEmbed};
 use poise::CreateReply;
+use poise::serenity_prelude::{CreateAttachment, CreateEmbed};
 use serenity::all::Colour;
 
 /// Generates OpenTabletDriver udev rules for the given vendor and product Ids.
@@ -21,8 +21,7 @@ pub async fn generate_udev(
 ) -> Result<(), Error> {
     let udev = gen_udev(vendor_id, product_id, libinput_override.unwrap_or(true));
 
-    ctx.send(udev_reply(udev))
-        .await?;
+    ctx.send(udev_reply(udev)).await?;
 
     Ok(())
 }
@@ -41,18 +40,31 @@ pub async fn generate_udev_hex(
     libinput_override: Option<bool>,
 ) -> Result<(), Error> {
     let hex_replacements = ["#", "0x"];
-    let vendor_id_hex_parsed = u64::from_str_radix(&hex_replacements.iter().fold(vendor_id, |acc, x| acc.replacen(x, "", 1)), 16);
-    let product_id_hex_parsed = u64::from_str_radix(&hex_replacements.iter().fold(product_id, |acc, x| acc.replacen(x, "", 1)), 16);
-    if let Ok(vendor_id_decimal) = vendor_id_hex_parsed && let Ok(product_id_decimal) = product_id_hex_parsed {
-        let udev = gen_udev(vendor_id_decimal, product_id_decimal, libinput_override.unwrap_or(true));
+    let vendor_id_hex_parsed = u64::from_str_radix(
+        &hex_replacements
+            .iter()
+            .fold(vendor_id, |acc, x| acc.replacen(x, "", 1)),
+        16,
+    );
+    let product_id_hex_parsed = u64::from_str_radix(
+        &hex_replacements
+            .iter()
+            .fold(product_id, |acc, x| acc.replacen(x, "", 1)),
+        16,
+    );
+    if let Ok(vendor_id_decimal) = vendor_id_hex_parsed
+        && let Ok(product_id_decimal) = product_id_hex_parsed
+    {
+        let udev = gen_udev(
+            vendor_id_decimal,
+            product_id_decimal,
+            libinput_override.unwrap_or(true),
+        );
 
-        ctx.send(udev_reply(udev))
-            .await?;
+        ctx.send(udev_reply(udev)).await?;
     } else {
-        ctx.send(
-            poise::CreateReply::new()
-                .content(format!("Could not parse udev hex input"))
-        ).await?;
+        ctx.send(poise::CreateReply::new().content(format!("Could not parse udev hex input")))
+            .await?;
     }
 
     Ok(())
