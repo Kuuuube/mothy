@@ -31,8 +31,15 @@ pub async fn hex(
 
     let mut combined_image = ImageBuffer::new(image_width, image_height);
 
+    let mut rgba_strings: Vec<String> = Default::default();
+
     for (i, colour) in colour_codes.iter().enumerate() {
         if let Ok(rgba) = hex_to_rgba(colour) {
+            rgba_strings.push(format!(
+                "#{} = rgba({})",
+                colour,
+                rgba.map(|x| x.to_string()).join(", ")
+            ));
             for x in 0..block_width {
                 for y in 0..block_height {
                     combined_image.put_pixel(i as u32 * block_width + x, y, Rgba(rgba));
@@ -64,8 +71,13 @@ pub async fn hex(
     };
 
     let attachment = serenity::CreateAttachment::bytes(bytes, "combined_colour.png");
-    ctx.send(poise::CreateReply::default().attachment(attachment))
-        .await?;
+    let content = rgba_strings.join(", ");
+    ctx.send(
+        poise::CreateReply::new()
+            .content(content)
+            .attachment(attachment),
+    )
+    .await?;
 
     Ok(())
 }
