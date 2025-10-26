@@ -5,4 +5,5 @@ sudo chown postgres /run/postgresql
 # ex:
 # sudo su - postgres
 # pg_ctl -D /var/lib/postgres/data -l logfile start
+# exit
 sudo -u postgres pg_ctl -D /var/lib/postgres/data -l logfile start
