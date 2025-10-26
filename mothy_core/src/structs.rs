@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+use serenity::all::GuildId;
 
 use crate::error::Error;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -9,7 +12,31 @@ pub struct Data {
     pub has_started: std::sync::atomic::AtomicBool,
     pub database: crate::database::Database,
     pub james_scores: Vec<ScoresData>,
+    pub regex_filters: Vec<regex::Regex>,
+    pub config: MothyConfig,
 }
+
+pub struct MothyConfig {
+    pub events: Events,
+}
+
+impl MothyConfig {
+    #[must_use]
+    pub fn new() -> Self {
+        MothyConfig {
+            events: Events::default(),
+        }
+    }
+}
+
+
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
+pub struct Events {
+    pub no_log_channels: Option<Vec<u64>>,
+    pub no_log_users: Option<Vec<u64>>,
+    pub guild_name_override: Option<HashMap<GuildId, String>>,
+}
+
 
 #[derive(Serialize, Deserialize)]
 pub struct ScoresData {

@@ -48,6 +48,8 @@ async fn main() {
             has_started: AtomicBool::new(false),
             database: mothy_core::database::Database::init().await,
             james_scores: mothy_core::score_data::init().unwrap_or_default(),
+            regex_filters: mothy_core::regex_filters::init(),
+            config: mothy_core::structs::MothyConfig::new(),
         }))
         .await;
 

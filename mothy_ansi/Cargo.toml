@@ -1,0 +1,7 @@
+[package]
+name = "mothy_ansi"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+aformat = "0.1.8"

@@ -1664,6 +1664,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "mothy_ansi"
+version = "0.1.0"
+dependencies = [
+ "aformat",
+]
+
+[[package]]
 name = "mothy_commands"
 version = "0.1.0"
 dependencies = [
@@ -1703,8 +1710,10 @@ dependencies = [
 name = "mothy_events"
 version = "0.1.0"
 dependencies = [
+ "mothy_ansi",
  "mothy_core",
  "serenity",
+ "tokio",
 ]
 
 [[package]]

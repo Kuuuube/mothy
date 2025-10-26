@@ -2,6 +2,7 @@ pub use mothy_core::{error::Error, structs::Data};
 use serenity::all::{self as serenity, FullEvent};
 
 mod messages;
+mod helper;
 
 pub struct Handler;
 
@@ -15,6 +16,8 @@ impl serenity::EventHandler for Handler {
 }
 
 pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result<(), Error> {
+    let data = ctx.data::<Data>();
+
     match event {
         FullEvent::Ready { data_about_bot, .. } => {
             let data = ctx.data_ref::<Data>();
@@ -30,7 +33,7 @@ pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result
             }
         }
         FullEvent::Message { new_message, .. } => {
-            messages::on_message(ctx, new_message).await;
+            messages::on_message(ctx, new_message, data).await;
         }
         _ => (),
     }
