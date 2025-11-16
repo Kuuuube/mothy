@@ -51,7 +51,8 @@ async fn image_spambot_filter(ctx: &Context, msg: &Message) {
         }
     }
     if image_count >= 3 && not_image == 0 {
-        msg.delete(&ctx.http, None).await;
+        // Dont do this yet
+        // msg.delete(&ctx.http, None).await;
     }
 }
 
