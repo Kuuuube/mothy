@@ -43,7 +43,21 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
     sudo chown postgres /run/postgresql
     ```
 
-5. Exit the postgres user with `exit`
+5. (Optional) If you want to use a database under a non-default name, run the following (replace `postgresmothy` with whatever you prefer):
+
+    ```
+    sudo su - postgres
+    psql
+    CREATE DATABASE postgresmothy;
+    ```
+
+    Verify it has been created with:
+
+    ```
+    SELECT datname FROM pg_database WHERE datistemplate = false;
+    ```
+
+6. Exit the postgres user with `exit`
 
 ### Sqlx
 
