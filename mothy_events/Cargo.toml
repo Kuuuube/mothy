@@ -8,3 +8,4 @@ mothy_core = { version = "0.1.0", path = "../mothy_core" }
 mothy_ansi = { path = "../mothy_ansi" }
 serenity.workspace = true
 tokio.workspace = true
+chrono.workspace = true

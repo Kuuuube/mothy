@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serenity::all::{GuildId, RoleId};
+use serenity::all::{ChannelId, GenericChannelId, GuildId, RoleId};
 
 use crate::error::Error;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -20,6 +20,7 @@ pub struct MothyConfig {
     pub events: Events,
     pub filters_allowed_guilds: Vec<GuildId>,
     pub filter_bypass_roles: Vec<RoleId>,
+    pub mothy_logs_channel: HashMap<GuildId, GenericChannelId>,
 }
 
 impl MothyConfig {
@@ -31,10 +32,14 @@ impl MothyConfig {
             filters_allowed_guilds: vec![902907712441040926.into(), 529423189860679702.into()],
             // regular role on kuuube server, test role on test server
             filter_bypass_roles: vec![1001489392457760828.into(), 1440516379840090345.into()],
+            // kuuube server logs channel, test server logs channel
+            mothy_logs_channel: HashMap::from([
+                (902907712441040926.into(), 920370368135442442.into()),
+                (529423189860679702.into(), 894927450063138816.into()),
+            ]),
         }
     }
 }
-
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct Events {
@@ -42,7 +47,6 @@ pub struct Events {
     pub no_log_users: Option<Vec<u64>>,
     pub guild_name_override: Option<HashMap<GuildId, String>>,
 }
-
 
 #[derive(Serialize, Deserialize)]
 pub struct ScoresData {

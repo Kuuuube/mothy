@@ -3,6 +3,7 @@ use serenity::all::{self as serenity, FullEvent};
 
 mod messages;
 mod helper;
+mod join_leave;
 
 pub struct Handler;
 
@@ -34,6 +35,12 @@ pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result
         }
         FullEvent::Message { new_message, .. } => {
             messages::on_message(ctx, new_message, data).await;
+        }
+        FullEvent::GuildMemberAddition { new_member, .. } => {
+            join_leave::on_join(ctx, new_member, data).await;
+        }
+        FullEvent::GuildMemberRemoval { guild_id, user, member_data_if_available, .. } => {
+
         }
         _ => (),
     }

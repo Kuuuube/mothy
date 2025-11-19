@@ -1710,6 +1710,7 @@ dependencies = [
 name = "mothy_events"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "mothy_ansi",
  "mothy_core",
  "serenity",
