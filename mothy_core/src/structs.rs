@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serenity::all::GuildId;
+use serenity::all::{GuildId, RoleId};
 
 use crate::error::Error;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -18,6 +18,8 @@ pub struct Data {
 
 pub struct MothyConfig {
     pub events: Events,
+    pub filters_allowed_guilds: Vec<GuildId>,
+    pub filter_bypass_roles: Vec<RoleId>,
 }
 
 impl MothyConfig {
@@ -25,6 +27,10 @@ impl MothyConfig {
     pub fn new() -> Self {
         MothyConfig {
             events: Events::default(),
+            // only allow filters to apply to kuuube server and test server
+            filters_allowed_guilds: vec![902907712441040926.into(), 529423189860679702.into()],
+            // regular role on kuuube server, test role on test server
+            filter_bypass_roles: vec![1001489392457760828.into(), 1440516379840090345.into()],
         }
     }
 }
