@@ -1,5 +1,5 @@
 use std::{fmt::Write, sync::Arc};
-use mothy_ansi::{CYAN, HI_BLACK, RESET};
+use mothy_ansi::{CYAN, HI_BLACK, RESET, HI_RED};
 use mothy_core::structs::Data;
 use serenity::all::{Context, Message, Role};
 
@@ -33,9 +33,34 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
 
     let _ = tokio::join!(
         image_spambot_filter(ctx, msg),
+        regex_blacklist_filter(ctx, &data, msg, guild_name, channel_name, author_string),
     );
 
     let Some(_) = msg.guild_id else { return };
+}
+
+async fn regex_blacklist_filter(ctx: &Context, data: &Data, msg: &Message, guild_name: String, channel_name: String, author_string: String) {
+    let regex_filters = &data.regex_filters;
+    let content = &msg.content;
+    for regex_filter in regex_filters {
+        if regex_filter.is_match(&content) {
+            match msg.delete(&ctx.http, None).await {
+                Ok(_) => {
+                    println!(
+                        "{HI_RED}DELETED [{guild_name}] [#{channel_name}]{RESET} {author_string}: \
+                        {content}{RESET}{CYAN}{RESET}"
+                    );
+                },
+                Err(err) => {
+                    println!(
+                        "FAILED TO DELETE {HI_RED}[{guild_name}] [#{channel_name}]{RESET} {author_string}: \
+                        {content}{RESET}{CYAN}{RESET}");
+                    dbg!(err);
+                },
+            }
+            break;
+        }
+    }
 }
 
 async fn image_spambot_filter(ctx: &Context, msg: &Message) {
