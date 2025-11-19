@@ -39,8 +39,8 @@ pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result
         FullEvent::GuildMemberAddition { new_member, .. } => {
             join_leave::on_join(ctx, new_member, data).await;
         }
-        FullEvent::GuildMemberRemoval { guild_id, user, member_data_if_available, .. } => {
-
+        FullEvent::GuildMemberRemoval { guild_id, user, .. } => {
+            join_leave::guild_member_removal(ctx, guild_id, user, data).await;
         }
         _ => (),
     }

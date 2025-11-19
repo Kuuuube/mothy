@@ -2,12 +2,18 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Datelike, Timelike, Utc};
 use mothy_core::structs::Data;
-use serenity::all::{Context, CreateEmbed, CreateEmbedFooter, CreateMessage, Member, Timestamp};
+use mothy_ansi::{YELLOW, RESET};
+use serenity::all::{Context, CreateEmbed, CreateEmbedFooter, CreateMessage, GuildId, Member, Timestamp, User};
+
+use crate::helper::get_guild_name_override;
 
 const POSITIVE_COLOR: u32 = 0x43b582;
 const NEGATIVE_COLOR: u32 = 0xff470f;
 
 pub async fn on_join(ctx: &Context, new_member: &Member, data: Arc<Data>) {
+    let guild_id = new_member.guild_id;
+    let joined_user_id = new_member.user.id;
+
     if let Some(join_logs_channel) = data.config.mothy_logs_channel.get(&new_member.guild_id) {
         let embed = CreateEmbed::new()
             .thumbnail(new_member.avatar_url().unwrap_or_default())
@@ -31,6 +37,50 @@ pub async fn on_join(ctx: &Context, new_member: &Member, data: Arc<Data>) {
             .send_message(&ctx.http, CreateMessage::new().embed(embed))
             .await;
     }
+
+    let guild_name = get_guild_name_override(ctx, &data, Some(guild_id));
+
+    println!(
+        "{YELLOW}[{}] {} (ID:{}) has joined!{RESET}",
+        guild_name,
+        new_member.user.tag(),
+        joined_user_id
+    );
+}
+
+pub async fn guild_member_removal(
+    ctx: &Context,
+    guild_id: &GuildId,
+    user: &User,
+    data: Arc<Data>,
+) {
+    let guild_name = get_guild_name_override(ctx, &data, Some(*guild_id));
+
+    println!(
+        "{YELLOW}[{}] {} (ID:{}) has left!{RESET}",
+        guild_name,
+        user.tag(),
+        user.id
+    );
+
+    if let Some(join_logs_channel) = data.config.mothy_logs_channel.get(&guild_id) {
+        let embed = CreateEmbed::new()
+            .thumbnail(user.avatar_url().unwrap_or_default())
+            .colour(NEGATIVE_COLOR)
+            .title("Member Left")
+            .description(format!(
+                "<@{}> {}",
+                user.id, user.name
+            ))
+            .timestamp(Timestamp::now())
+            .footer(CreateEmbedFooter::new(format!(
+                "ID: {}",
+                user.id
+            )));
+        let _ = join_logs_channel
+            .send_message(&ctx.http, CreateMessage::new().embed(embed))
+            .await;
+    }
 }
 
 fn get_member_joined_at(new_member: &Member) -> Option<String> {
@@ -41,8 +91,6 @@ fn get_member_joined_at(new_member: &Member) -> Option<String> {
         0,
     )?;
     let time_since_adjusted = time_since.with_year(time_since.year() - 1970)?;
-
-    dbg!(time_since_adjusted);
 
     return Some(format!("{}", truncate_datetime_string(time_since_adjusted)));
 }
