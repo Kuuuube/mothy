@@ -1,7 +1,8 @@
 use mothy_ansi::{CYAN, HI_BLACK, HI_RED, RESET};
 use mothy_core::{error::Error, structs::Data};
 use serenity::all::{
-    Context, CreateEmbed, CreateEmbedFooter, CreateMessage, Message, Role, Timestamp,
+    Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, Message, Role,
+    Timestamp,
 };
 use std::{fmt::Write, sync::Arc};
 
@@ -98,7 +99,10 @@ async fn regex_blacklist_filter(
                         .get(&msg.guild_id.unwrap_or_default())
                     {
                         let embed = CreateEmbed::new()
-                            .thumbnail(msg.author.avatar_url().unwrap_or_default())
+                            .author(
+                                CreateEmbedAuthor::new(&msg.author.name)
+                                    .icon_url(msg.author.avatar_url().unwrap_or_default()),
+                            )
                             .colour(NEGATIVE_COLOR_HEX)
                             .title("Message Filtered")
                             .description(format!(
@@ -109,12 +113,12 @@ async fn regex_blacklist_filter(
                             ))
                             .field(
                                 "Reason",
-                                format!("```\n{}\n```", regex_match.as_str().replace("`", "\\`")),
+                                format!("Bad Link: `{}`", regex_match.as_str().replace("`", "\\`")),
                                 true,
                             )
                             .field(
                                 "Rule",
-                                format!("```\n{}\n```", regex_filter.as_str().replace("`", "\\`")),
+                                format!("`{}`", regex_filter.as_str().replace("`", "\\`")),
                                 true,
                             )
                             .timestamp(Timestamp::now())
