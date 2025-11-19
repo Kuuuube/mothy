@@ -36,7 +36,12 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
         );
     }
 
-    let user_roles = msg.member.as_ref().unwrap().roles.to_vec();
+    let user_roles = if let Some(member) = msg.member.as_ref() {
+        member.roles.to_vec()
+    } else {
+        vec![]
+    };
+
     let filters_valid_guild = data
         .config
         .filters_allowed_guilds
@@ -68,7 +73,7 @@ async fn regex_blacklist_filter(
     let regex_filters = &data.regex_filters;
     let content = &msg.content;
     for regex_filter in regex_filters {
-        if regex_filter.is_match(&content) {
+        if let Some(regex_result) = regex_filter.find(&content) {
             match msg.delete(&ctx.http, None).await {
                 Ok(_) => {
                     println!(
@@ -92,11 +97,13 @@ async fn regex_blacklist_filter(
                             ))
                             .field(
                                 "Reason",
-                                format!(
-                                    "```\n{}\n```",
-                                    regex_filter.to_string().replace("`", "\\`")
-                                ),
-                                false,
+                                format!("```\n{}\n```", regex_result.as_str().replace("`", "\\`")),
+                                true,
+                            )
+                            .field(
+                                "Rule",
+                                format!("```\n{}\n```", regex_filter.as_str().replace("`", "\\`")),
+                                true,
                             )
                             .timestamp(Timestamp::now())
                             .footer(CreateEmbedFooter::new(format!("ID: {}", msg.author.id)));
