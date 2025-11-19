@@ -1,9 +1,9 @@
 use std::{fmt::Write, sync::Arc};
 use mothy_ansi::{CYAN, HI_BLACK, RESET, HI_RED};
-use mothy_core::structs::Data;
-use serenity::all::{Context, Message, Role};
+use mothy_core::{error::Error, structs::Data};
+use serenity::all::{Context, CreateEmbed, CreateEmbedFooter, CreateMessage, Message, Role, Timestamp};
 
-use crate::helper::{get_channel_name, get_guild_name_override};
+use crate::{NEGATIVE_COLOR_HEX, helper::{get_channel_name, get_guild_name_override}};
 
 pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
     let dont_print = false;
@@ -45,7 +45,7 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
     let Some(_) = msg.guild_id else { return };
 }
 
-async fn regex_blacklist_filter(ctx: &Context, data: &Data, msg: &Message, guild_name: String, channel_name: String, author_string: String) {
+async fn regex_blacklist_filter(ctx: &Context, data: &Data, msg: &Message, guild_name: String, channel_name: String, author_string: String) -> Result<(), Error> {
     let regex_filters = &data.regex_filters;
     let content = &msg.content;
     for regex_filter in regex_filters {
@@ -56,6 +56,27 @@ async fn regex_blacklist_filter(ctx: &Context, data: &Data, msg: &Message, guild
                         "{HI_RED}REGEX DELETED [{guild_name}] [#{channel_name}]{RESET} {author_string}: \
                         {content}{RESET}{CYAN}{RESET}"
                     );
+                    if let Some(blacklist_logs_channel) = data.config.mothy_blacklist_logs_channel.get(&msg.guild_id.unwrap_or_default()) {
+                        let embed = CreateEmbed::new()
+                            .thumbnail(msg.author.avatar_url().unwrap_or_default())
+                            .colour(NEGATIVE_COLOR_HEX)
+                            .title("Message Filtered")
+                            .description(format!(
+                                "Message sent by <@{}> deleted in <#{}>\n```\n{}\n```",
+                                msg.author.id, msg.channel_id, &msg.content_safe(&ctx.cache).replace("`", "\\`")
+                            ))
+                            .field(
+                                "Reason",
+                                format!("```\n{}\n```", regex_filter.to_string().replace("`", "\\`")),
+                                false
+                            )
+                            .timestamp(Timestamp::now())
+                            .footer(CreateEmbedFooter::new(format!(
+                                "ID: {}",
+                                msg.author.id
+                            )));
+                        blacklist_logs_channel.send_message(&ctx.http, CreateMessage::new().embed(embed)).await?;
+                    }
                 },
                 Err(err) => {
                     println!(
@@ -67,6 +88,7 @@ async fn regex_blacklist_filter(ctx: &Context, data: &Data, msg: &Message, guild
             break;
         }
     }
+    Ok(())
 }
 
 async fn image_spambot_filter(ctx: &Context, msg: &Message) {

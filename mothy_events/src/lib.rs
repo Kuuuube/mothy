@@ -7,6 +7,9 @@ mod join_leave;
 
 pub struct Handler;
 
+const POSITIVE_COLOR_HEX: u32 = 0x43b582;
+const NEGATIVE_COLOR_HEX: u32 = 0xff470f;
+
 #[serenity::async_trait]
 impl serenity::EventHandler for Handler {
     async fn dispatch(&self, ctx: &serenity::Context, event: &FullEvent) {
@@ -37,7 +40,7 @@ pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result
             messages::on_message(ctx, new_message, data).await;
         }
         FullEvent::GuildMemberAddition { new_member, .. } => {
-            join_leave::on_join(ctx, new_member, data).await;
+            join_leave::guild_member_addition(ctx, new_member, data).await;
         }
         FullEvent::GuildMemberRemoval { guild_id, user, .. } => {
             join_leave::guild_member_removal(ctx, guild_id, user, data).await;

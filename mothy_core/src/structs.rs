@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serenity::all::{ChannelId, GenericChannelId, GuildId, RoleId};
+use serenity::all::{GenericChannelId, GuildId, RoleId};
 
 use crate::error::Error;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -21,6 +21,7 @@ pub struct MothyConfig {
     pub filters_allowed_guilds: Vec<GuildId>,
     pub filter_bypass_roles: Vec<RoleId>,
     pub mothy_logs_channel: HashMap<GuildId, GenericChannelId>,
+    pub mothy_blacklist_logs_channel: HashMap<GuildId, GenericChannelId>,
 }
 
 impl MothyConfig {
@@ -35,6 +36,11 @@ impl MothyConfig {
             // kuuube server logs channel, test server logs channel
             mothy_logs_channel: HashMap::from([
                 (902907712441040926.into(), 920370368135442442.into()),
+                (529423189860679702.into(), 894927450063138816.into()),
+            ]),
+            // kuuube server blacklist logs channel, test server logs channel
+            mothy_blacklist_logs_channel: HashMap::from([
+                (902907712441040926.into(), 917776727801995304.into()),
                 (529423189860679702.into(), 894927450063138816.into()),
             ]),
         }

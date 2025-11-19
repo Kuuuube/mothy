@@ -5,19 +5,16 @@ use mothy_core::structs::Data;
 use mothy_ansi::{YELLOW, RESET};
 use serenity::all::{Context, CreateEmbed, CreateEmbedFooter, CreateMessage, GuildId, Member, Timestamp, User};
 
-use crate::helper::get_guild_name_override;
+use crate::{NEGATIVE_COLOR_HEX, POSITIVE_COLOR_HEX, helper::get_guild_name_override};
 
-const POSITIVE_COLOR: u32 = 0x43b582;
-const NEGATIVE_COLOR: u32 = 0xff470f;
-
-pub async fn on_join(ctx: &Context, new_member: &Member, data: Arc<Data>) {
+pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc<Data>) {
     let guild_id = new_member.guild_id;
     let joined_user_id = new_member.user.id;
 
     if let Some(join_logs_channel) = data.config.mothy_logs_channel.get(&new_member.guild_id) {
         let embed = CreateEmbed::new()
             .thumbnail(new_member.avatar_url().unwrap_or_default())
-            .colour(POSITIVE_COLOR)
+            .colour(POSITIVE_COLOR_HEX)
             .title("Member Joined")
             .description(format!(
                 "<@{}> {}",
@@ -66,7 +63,7 @@ pub async fn guild_member_removal(
     if let Some(join_logs_channel) = data.config.mothy_logs_channel.get(&guild_id) {
         let embed = CreateEmbed::new()
             .thumbnail(user.avatar_url().unwrap_or_default())
-            .colour(NEGATIVE_COLOR)
+            .colour(NEGATIVE_COLOR_HEX)
             .title("Member Left")
             .description(format!(
                 "<@{}> {}",
