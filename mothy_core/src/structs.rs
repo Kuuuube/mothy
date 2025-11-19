@@ -12,8 +12,13 @@ pub struct Data {
     pub has_started: std::sync::atomic::AtomicBool,
     pub database: crate::database::Database,
     pub james_scores: Vec<ScoresData>,
-    pub regex_filters: Vec<regex::Regex>,
+    pub regex_filters: RegexFilters,
     pub config: MothyConfig,
+}
+
+pub struct RegexFilters {
+    pub links_detector: regex::Regex,
+    pub links_blacklist: Vec<regex::Regex>,
 }
 
 pub struct MothyConfig {

@@ -72,55 +72,74 @@ async fn regex_blacklist_filter(
 ) -> Result<(), Error> {
     let regex_filters = &data.regex_filters;
     let content = &msg.content;
-    for regex_filter in regex_filters {
-        if let Some(regex_result) = regex_filter.find(&content) {
-            match msg.delete(&ctx.http, None).await {
-                Ok(_) => {
-                    println!(
-                        "{HI_RED}REGEX DELETED [{guild_name}] [#{channel_name}]{RESET} {author_string}: \
-                        {content}{RESET}{CYAN}{RESET}"
-                    );
-                    if let Some(blacklist_logs_channel) = data
-                        .config
-                        .mothy_blacklist_logs_channel
-                        .get(&msg.guild_id.unwrap_or_default())
-                    {
-                        let embed = CreateEmbed::new()
-                            .thumbnail(msg.author.avatar_url().unwrap_or_default())
-                            .colour(NEGATIVE_COLOR_HEX)
-                            .title("Message Filtered")
-                            .description(format!(
-                                "Message sent by <@{}> deleted in <#{}>\n```\n{}\n```",
-                                msg.author.id,
-                                msg.channel_id,
-                                &msg.content_safe(&ctx.cache).replace("`", "\\`")
-                            ))
-                            .field(
-                                "Reason",
-                                format!("```\n{}\n```", regex_result.as_str().replace("`", "\\`")),
-                                true,
-                            )
-                            .field(
-                                "Rule",
-                                format!("```\n{}\n```", regex_filter.as_str().replace("`", "\\`")),
-                                true,
-                            )
-                            .timestamp(Timestamp::now())
-                            .footer(CreateEmbedFooter::new(format!("ID: {}", msg.author.id)));
-                        blacklist_logs_channel
-                            .send_message(&ctx.http, CreateMessage::new().embed(embed))
-                            .await?;
+
+    let links = regex_filters
+        .links_detector
+        .captures_iter(content)
+        .fold(vec![], |mut acc, x| {
+            if let Some(x_some) = x.get(0) {
+                acc.push(x_some.as_str());
+            };
+            acc
+        });
+
+    for link in links {
+        for regex_filter in &regex_filters.links_blacklist {
+            if regex_filter.is_match(link) {
+                match msg.delete(&ctx.http, None).await {
+                    Ok(_) => {
+                        println!(
+                            "{HI_RED}REGEX DELETED [{guild_name}] [#{channel_name}]{RESET} {author_string}: \
+                            {content}{RESET}{CYAN}{RESET}"
+                        );
+                        if let Some(blacklist_logs_channel) = data
+                            .config
+                            .mothy_blacklist_logs_channel
+                            .get(&msg.guild_id.unwrap_or_default())
+                        {
+                            let embed = CreateEmbed::new()
+                                .thumbnail(msg.author.avatar_url().unwrap_or_default())
+                                .colour(NEGATIVE_COLOR_HEX)
+                                .title("Message Filtered")
+                                .description(format!(
+                                    "Message sent by <@{}> deleted in <#{}>\n```\n{}\n```",
+                                    msg.author.id,
+                                    msg.channel_id,
+                                    &msg.content_safe(&ctx.cache).replace("`", "\\`")
+                                ))
+                                .field(
+                                    "Reason",
+                                    format!(
+                                        "```\n{}\n```",
+                                        link.replace("`", "\\`")
+                                    ),
+                                    true,
+                                )
+                                .field(
+                                    "Rule",
+                                    format!(
+                                        "```\n{}\n```",
+                                        regex_filter.as_str().replace("`", "\\`")
+                                    ),
+                                    true,
+                                )
+                                .timestamp(Timestamp::now())
+                                .footer(CreateEmbedFooter::new(format!("ID: {}", msg.author.id)));
+                            blacklist_logs_channel
+                                .send_message(&ctx.http, CreateMessage::new().embed(embed))
+                                .await?;
+                        }
+                    }
+                    Err(err) => {
+                        println!(
+                            "FAILED TO REGEX DELETE {HI_RED}[{guild_name}] [#{channel_name}]{RESET} {author_string}: \
+                            {content}{RESET}{CYAN}{RESET}"
+                        );
+                        dbg!(err);
                     }
                 }
-                Err(err) => {
-                    println!(
-                        "FAILED TO REGEX DELETE {HI_RED}[{guild_name}] [#{channel_name}]{RESET} {author_string}: \
-                        {content}{RESET}{CYAN}{RESET}"
-                    );
-                    dbg!(err);
-                }
+                break;
             }
-            break;
         }
     }
     Ok(())
