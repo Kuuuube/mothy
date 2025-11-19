@@ -1,9 +1,9 @@
 pub use mothy_core::{error::Error, structs::Data};
 use serenity::all::{self as serenity, FullEvent};
 
-mod messages;
 mod helper;
 mod join_leave;
+mod messages;
 
 pub struct Handler;
 

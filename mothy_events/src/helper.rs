@@ -3,9 +3,12 @@ use crate::Data;
 use std::fmt::Write;
 use std::sync::Arc;
 
-use serenity::all::{AutoArchiveDuration, ChannelType, Context, ForumLayoutType, GuildId, PermissionOverwrite, PermissionOverwriteType, Permissions, SortOrder, User, UserId};
 use ::serenity::all::GenericChannelId;
 use mothy_ansi::{HI_GREEN, RED, RESET};
+use serenity::all::{
+    AutoArchiveDuration, ChannelType, Context, ForumLayoutType, GuildId, PermissionOverwrite,
+    PermissionOverwriteType, Permissions, SortOrder, User, UserId,
+};
 
 // this function serves to help reduce the magic usage of to_user, serenity no longer
 // iterates through all caches to get the information, and that was poor anyway,

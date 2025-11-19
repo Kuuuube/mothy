@@ -1,15 +1,20 @@
-use std::{fmt::Write, sync::Arc};
-use mothy_ansi::{CYAN, HI_BLACK, RESET, HI_RED};
+use mothy_ansi::{CYAN, HI_BLACK, HI_RED, RESET};
 use mothy_core::{error::Error, structs::Data};
-use serenity::all::{Context, CreateEmbed, CreateEmbedFooter, CreateMessage, Message, Role, Timestamp};
+use serenity::all::{
+    Context, CreateEmbed, CreateEmbedFooter, CreateMessage, Message, Role, Timestamp,
+};
+use std::{fmt::Write, sync::Arc};
 
-use crate::{NEGATIVE_COLOR_HEX, helper::{get_channel_name, get_guild_name_override}};
+use crate::{
+    NEGATIVE_COLOR_HEX,
+    helper::{get_channel_name, get_guild_name_override},
+};
 
 pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
     let dont_print = false;
     let content = {
         let maybe_flagged = &msg.content;
-            // moth_filter::filter_content(&msg.content, &config.badlist, &config.fixlist);
+        // moth_filter::filter_content(&msg.content, &config.badlist, &config.fixlist);
 
         maybe_flagged
     };
@@ -32,8 +37,15 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
     }
 
     let user_roles = msg.member.as_ref().unwrap().roles.to_vec();
-    let filters_valid_guild = data.config.filters_allowed_guilds.contains(&guild_id.unwrap_or_default());
-    let filters_valid_author = !data.config.filter_bypass_roles.iter().any(|x| user_roles.contains(x));
+    let filters_valid_guild = data
+        .config
+        .filters_allowed_guilds
+        .contains(&guild_id.unwrap_or_default());
+    let filters_valid_author = !data
+        .config
+        .filter_bypass_roles
+        .iter()
+        .any(|x| user_roles.contains(x));
 
     if filters_valid_guild && filters_valid_author {
         let _ = tokio::join!(
@@ -45,7 +57,14 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
     let Some(_) = msg.guild_id else { return };
 }
 
-async fn regex_blacklist_filter(ctx: &Context, data: &Data, msg: &Message, guild_name: String, channel_name: String, author_string: String) -> Result<(), Error> {
+async fn regex_blacklist_filter(
+    ctx: &Context,
+    data: &Data,
+    msg: &Message,
+    guild_name: String,
+    channel_name: String,
+    author_string: String,
+) -> Result<(), Error> {
     let regex_filters = &data.regex_filters;
     let content = &msg.content;
     for regex_filter in regex_filters {
@@ -56,34 +75,43 @@ async fn regex_blacklist_filter(ctx: &Context, data: &Data, msg: &Message, guild
                         "{HI_RED}REGEX DELETED [{guild_name}] [#{channel_name}]{RESET} {author_string}: \
                         {content}{RESET}{CYAN}{RESET}"
                     );
-                    if let Some(blacklist_logs_channel) = data.config.mothy_blacklist_logs_channel.get(&msg.guild_id.unwrap_or_default()) {
+                    if let Some(blacklist_logs_channel) = data
+                        .config
+                        .mothy_blacklist_logs_channel
+                        .get(&msg.guild_id.unwrap_or_default())
+                    {
                         let embed = CreateEmbed::new()
                             .thumbnail(msg.author.avatar_url().unwrap_or_default())
                             .colour(NEGATIVE_COLOR_HEX)
                             .title("Message Filtered")
                             .description(format!(
                                 "Message sent by <@{}> deleted in <#{}>\n```\n{}\n```",
-                                msg.author.id, msg.channel_id, &msg.content_safe(&ctx.cache).replace("`", "\\`")
+                                msg.author.id,
+                                msg.channel_id,
+                                &msg.content_safe(&ctx.cache).replace("`", "\\`")
                             ))
                             .field(
                                 "Reason",
-                                format!("```\n{}\n```", regex_filter.to_string().replace("`", "\\`")),
-                                false
+                                format!(
+                                    "```\n{}\n```",
+                                    regex_filter.to_string().replace("`", "\\`")
+                                ),
+                                false,
                             )
                             .timestamp(Timestamp::now())
-                            .footer(CreateEmbedFooter::new(format!(
-                                "ID: {}",
-                                msg.author.id
-                            )));
-                        blacklist_logs_channel.send_message(&ctx.http, CreateMessage::new().embed(embed)).await?;
+                            .footer(CreateEmbedFooter::new(format!("ID: {}", msg.author.id)));
+                        blacklist_logs_channel
+                            .send_message(&ctx.http, CreateMessage::new().embed(embed))
+                            .await?;
                     }
-                },
+                }
                 Err(err) => {
                     println!(
                         "FAILED TO REGEX DELETE {HI_RED}[{guild_name}] [#{channel_name}]{RESET} {author_string}: \
-                        {content}{RESET}{CYAN}{RESET}");
+                        {content}{RESET}{CYAN}{RESET}"
+                    );
                     dbg!(err);
-                },
+                }
             }
             break;
         }

@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
 use chrono::{DateTime, Datelike, Timelike, Utc};
+use mothy_ansi::{RESET, YELLOW};
 use mothy_core::structs::Data;
-use mothy_ansi::{YELLOW, RESET};
-use serenity::all::{Context, CreateEmbed, CreateEmbedFooter, CreateMessage, GuildId, Member, Timestamp, User};
+use serenity::all::{
+    Context, CreateEmbed, CreateEmbedFooter, CreateMessage, GuildId, Member, Timestamp, User,
+};
 
 use crate::{NEGATIVE_COLOR_HEX, POSITIVE_COLOR_HEX, helper::get_guild_name_override};
 
@@ -45,12 +47,7 @@ pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc
     );
 }
 
-pub async fn guild_member_removal(
-    ctx: &Context,
-    guild_id: &GuildId,
-    user: &User,
-    data: Arc<Data>,
-) {
+pub async fn guild_member_removal(ctx: &Context, guild_id: &GuildId, user: &User, data: Arc<Data>) {
     let guild_name = get_guild_name_override(ctx, &data, Some(*guild_id));
 
     println!(
@@ -65,15 +62,9 @@ pub async fn guild_member_removal(
             .thumbnail(user.avatar_url().unwrap_or_default())
             .colour(NEGATIVE_COLOR_HEX)
             .title("Member Left")
-            .description(format!(
-                "<@{}> {}",
-                user.id, user.name
-            ))
+            .description(format!("<@{}> {}", user.id, user.name))
             .timestamp(Timestamp::now())
-            .footer(CreateEmbedFooter::new(format!(
-                "ID: {}",
-                user.id
-            )));
+            .footer(CreateEmbedFooter::new(format!("ID: {}", user.id)));
         let _ = join_logs_channel
             .send_message(&ctx.http, CreateMessage::new().embed(embed))
             .await;
