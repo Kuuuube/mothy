@@ -4,7 +4,8 @@ use chrono::{DateTime, Datelike, Timelike, Utc};
 use mothy_ansi::{RESET, YELLOW};
 use mothy_core::structs::Data;
 use serenity::all::{
-    Context, CreateEmbed, CreateEmbedFooter, CreateMessage, GuildId, Member, Timestamp, User,
+    Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, GuildId, Member,
+    Timestamp, User,
 };
 
 use crate::{NEGATIVE_COLOR_HEX, POSITIVE_COLOR_HEX, helper::get_guild_name_override};
@@ -15,7 +16,10 @@ pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc
 
     if let Some(join_logs_channel) = data.config.mothy_logs_channel.get(&new_member.guild_id) {
         let embed = CreateEmbed::new()
-            .thumbnail(new_member.avatar_url().unwrap_or_default())
+            .author(
+                CreateEmbedAuthor::new(&new_member.user.name)
+                    .icon_url(new_member.avatar_url().unwrap_or_default()),
+            )
             .colour(POSITIVE_COLOR_HEX)
             .title("Member Joined")
             .description(format!(
@@ -59,7 +63,9 @@ pub async fn guild_member_removal(ctx: &Context, guild_id: &GuildId, user: &User
 
     if let Some(join_logs_channel) = data.config.mothy_logs_channel.get(&guild_id) {
         let embed = CreateEmbed::new()
-            .thumbnail(user.avatar_url().unwrap_or_default())
+            .author(
+                CreateEmbedAuthor::new(&user.name).icon_url(user.avatar_url().unwrap_or_default()),
+            )
             .colour(NEGATIVE_COLOR_HEX)
             .title("Member Left")
             .description(format!("<@{}> {}", user.id, user.name))
