@@ -109,4 +109,4 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
 
     Example (replace `{BOT_ID_HERE}`): https://discord.com/oauth2/authorize?client_id={BOT_ID_HERE}&scope=bot%20applications.commands&permissions=8
 
-3. Run `mregister` to register commands or `mdev-register` if `DEV_COMMANDS=true` is set in `.env`.
+3. Run `mregister` to register commands or `mdevregister` if `DEV_COMMANDS=true` is set in `.env`.

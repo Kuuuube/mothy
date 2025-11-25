@@ -20,7 +20,7 @@ pub fn commands() -> Vec<crate::Command> {
         .is_ok_and(Result::unwrap_or_default)
     {
         for command in &mut commands {
-            command.name = std::borrow::Cow::Owned(format!("dev-{}", command.name));
+            command.name = std::borrow::Cow::Owned(format!("dev{}", command.name));
         }
     }
 
