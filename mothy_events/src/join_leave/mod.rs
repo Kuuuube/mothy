@@ -99,25 +99,24 @@ fn truncate_datetime_string(datetime: DateTime<Utc>) -> String {
     let minute = datetime.minute();
     let second = datetime.second();
     if year > 0 {
-        datetime_strings.push(format!("Years {}", year));
+        datetime_strings.push(format!("{}y", year));
     }
     if month > 0 {
-        datetime_strings.push(format!("Months {}", month));
+        datetime_strings.push(format!("{}m", month));
     }
     if day > 0 {
-        datetime_strings.push(format!("Days {}", day));
+        datetime_strings.push(format!("{}d", day));
     }
 
     if hour > 0 {
-        datetime_strings.push(format!("Hours {}", hour));
+        datetime_strings.push(format!("{}h", hour));
     }
     if minute > 0 {
-        datetime_strings.push(format!("Minutes {}", minute));
+        datetime_strings.push(format!("{}m", minute));
     }
     if second > 0 {
-        datetime_strings.push(format!("Seconds {}", second));
+        datetime_strings.push(format!("{}s", second));
     }
 
-    datetime_strings.truncate(3);
-    return datetime_strings.join(", ");
+    return datetime_strings.join(" ");
 }
