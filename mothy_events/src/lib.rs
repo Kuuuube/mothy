@@ -37,13 +37,13 @@ pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result
             }
         }
         FullEvent::Message { new_message, .. } => {
-            messages::on_message(ctx, new_message, data).await;
+            messages::on_message(ctx, new_message, data).await?;
         }
         FullEvent::GuildMemberAddition { new_member, .. } => {
-            join_leave::guild_member_addition(ctx, new_member, data).await;
+            join_leave::guild_member_addition(ctx, new_member, data).await?;
         }
         FullEvent::GuildMemberRemoval { guild_id, user, .. } => {
-            join_leave::guild_member_removal(ctx, guild_id, user, data).await;
+            join_leave::guild_member_removal(ctx, guild_id, user, data).await?;
         }
         _ => (),
     }

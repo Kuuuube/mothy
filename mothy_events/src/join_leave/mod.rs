@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Datelike, Timelike, Utc};
 use mothy_ansi::{RESET, YELLOW};
-use mothy_core::structs::Data;
+use mothy_core::{error::Error, structs::Data};
 use serenity::all::{
     Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, GuildId, Member,
     Timestamp, User,
@@ -10,7 +10,7 @@ use serenity::all::{
 
 use crate::{NEGATIVE_COLOR_HEX, POSITIVE_COLOR_HEX, helper::get_guild_name_override};
 
-pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc<Data>) {
+pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc<Data>) -> Result<(), Error> {
     let guild_id = new_member.guild_id;
     let joined_user_id = new_member.user.id;
 
@@ -49,9 +49,11 @@ pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc
         new_member.user.tag(),
         joined_user_id
     );
+
+    Ok(())
 }
 
-pub async fn guild_member_removal(ctx: &Context, guild_id: &GuildId, user: &User, data: Arc<Data>) {
+pub async fn guild_member_removal(ctx: &Context, guild_id: &GuildId, user: &User, data: Arc<Data>) -> Result<(), Error> {
     let guild_name = get_guild_name_override(ctx, &data, Some(*guild_id));
 
     println!(
@@ -75,6 +77,8 @@ pub async fn guild_member_removal(ctx: &Context, guild_id: &GuildId, user: &User
             .send_message(&ctx.http, CreateMessage::new().embed(embed))
             .await;
     }
+
+    Ok(())
 }
 
 fn get_member_joined_at(new_member: &Member) -> Option<String> {

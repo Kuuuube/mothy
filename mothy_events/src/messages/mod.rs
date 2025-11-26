@@ -11,7 +11,7 @@ use crate::{
     helper::{get_channel_name, get_guild_name_override},
 };
 
-pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
+pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) -> Result<(), Error> {
     let dont_print = false;
     let content = {
         let maybe_flagged = &msg.content;
@@ -60,7 +60,9 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) {
         );
     }
 
-    let Some(_) = msg.guild_id else { return };
+    let Some(_) = msg.guild_id else { return Ok(()) };
+
+    Ok(())
 }
 
 async fn regex_blacklist_filter(
