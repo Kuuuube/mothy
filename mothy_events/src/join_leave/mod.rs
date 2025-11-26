@@ -14,7 +14,7 @@ pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc
     let guild_id = new_member.guild_id;
     let joined_user_id = new_member.user.id;
 
-    if let Some(join_logs_channel) = data.config.mothy_logs_channel.get(&new_member.guild_id) {
+    if let Some(join_logs_channel) = data.config.mothy_join_logs_channel.get(&new_member.guild_id) {
         let embed = CreateEmbed::new()
             .author(
                 CreateEmbedAuthor::new(&new_member.user.name)
@@ -63,7 +63,7 @@ pub async fn guild_member_removal(ctx: &Context, guild_id: &GuildId, user: &User
         user.id
     );
 
-    if let Some(join_logs_channel) = data.config.mothy_logs_channel.get(&guild_id) {
+    if let Some(join_logs_channel) = data.config.mothy_join_logs_channel.get(&guild_id) {
         let embed = CreateEmbed::new()
             .author(
                 CreateEmbedAuthor::new(&user.name).icon_url(user.avatar_url().unwrap_or_default()),

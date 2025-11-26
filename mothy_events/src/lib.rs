@@ -4,10 +4,12 @@ use serenity::all::{self as serenity, FullEvent};
 mod helper;
 mod join_leave;
 mod messages;
+mod voice;
 
 pub struct Handler;
 
 const POSITIVE_COLOR_HEX: u32 = 0x43b582;
+const NEUTRAL_ACTION_COLOR_HEX: u32 = 0x7a4bb7;
 const NEGATIVE_COLOR_HEX: u32 = 0xff470f;
 
 #[serenity::async_trait]
@@ -44,6 +46,9 @@ pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result
         }
         FullEvent::GuildMemberRemoval { guild_id, user, .. } => {
             join_leave::guild_member_removal(ctx, guild_id, user, data).await?;
+        }
+        FullEvent::VoiceStateUpdate { old, new, .. } => {
+            voice::voice_state_update(ctx, &data, old, new).await?;
         }
         _ => (),
     }
