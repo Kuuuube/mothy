@@ -97,8 +97,8 @@ fn truncate_datetime_string(datetime: DateTime<Utc>) -> String {
     let mut datetime_strings: Vec<String> = vec![];
 
     let year = datetime.year();
-    let month = datetime.month();
-    let day = datetime.day();
+    let month = datetime.month() - 1; // starts at 1
+    let day = datetime.day() - 1; // starts at 1
     let hour = datetime.hour();
     let minute = datetime.minute();
     let second = datetime.second();
