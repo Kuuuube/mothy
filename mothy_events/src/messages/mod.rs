@@ -170,6 +170,11 @@ async fn image_spambot_filter(
             .mothy_blacklist_logs_channel
             .get(&msg.guild_id.unwrap_or_default())
         {
+            let message_content_format = if msg.content.len() > 0 {
+                format!("```\n{}\n```", &msg.content_safe(&ctx.cache).replace("`", "\\`"))
+            } else {
+                "(No message content)".to_string()
+            };
             let embed = CreateEmbed::new()
                 .author(
                     CreateEmbedAuthor::new(&msg.author.name)
@@ -178,10 +183,10 @@ async fn image_spambot_filter(
                 .colour(NEGATIVE_COLOR_HEX)
                 .title("Message Filtered")
                 .description(format!(
-                    "Message sent by <@{}> deleted in <#{}>\n```\n{}\n```",
+                    "Message sent by <@{}> deleted in <#{}>\n{}",
                     msg.author.id,
                     msg.channel_id,
-                    &msg.content_safe(&ctx.cache).replace("`", "\\`")
+                    message_content_format
                 ))
                 .field(
                     "Reason",
