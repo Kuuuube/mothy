@@ -10,11 +10,19 @@ use serenity::all::{
 
 use crate::{NEGATIVE_COLOR_HEX, POSITIVE_COLOR_HEX, helper::get_guild_name_override};
 
-pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc<Data>) -> Result<(), Error> {
+pub async fn guild_member_addition(
+    ctx: &Context,
+    new_member: &Member,
+    data: Arc<Data>,
+) -> Result<(), Error> {
     let guild_id = new_member.guild_id;
     let joined_user_id = new_member.user.id;
 
-    if let Some(join_logs_channel) = data.config.mothy_join_logs_channel.get(&new_member.guild_id) {
+    if let Some(join_logs_channel) = data
+        .config
+        .mothy_join_logs_channel
+        .get(&new_member.guild_id)
+    {
         let embed = CreateEmbed::new()
             .author(
                 CreateEmbedAuthor::new(&new_member.user.name)
@@ -53,7 +61,12 @@ pub async fn guild_member_addition(ctx: &Context, new_member: &Member, data: Arc
     Ok(())
 }
 
-pub async fn guild_member_removal(ctx: &Context, guild_id: &GuildId, user: &User, data: Arc<Data>) -> Result<(), Error> {
+pub async fn guild_member_removal(
+    ctx: &Context,
+    guild_id: &GuildId,
+    user: &User,
+    data: Arc<Data>,
+) -> Result<(), Error> {
     let guild_name = get_guild_name_override(ctx, &data, Some(*guild_id));
 
     println!(
