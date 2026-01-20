@@ -1,0 +1,25 @@
+# make sure this package is installed
+sudo pacman -S postgresql-old-upgrade
+
+# run as root
+sudo mv /var/lib/postgres/data /var/lib/postgres/olddata
+sudo mkdir /var/lib/postgres/data /var/lib/postgres/tmp
+sudo chown postgres /var/lib/postgres/data /var/lib/postgres/tmp
+
+# run as postgres user
+cd /var/lib/postgres/tmp
+initdb -D /var/lib/postgres/data
+
+# replace `PG_VERSION` with the old postgres version
+# note that if postgres complains that something is wrong with the old cluster and you need to go in and fix it, you must use the old version of postgres to do so
+# for example: version 17 -> 18 may complain about checksums not being enabled `/opt/pgsql-17/bin/pg_checksums olddata --enable`
+pg_upgrade -b /opt/pgsql-PG_VERSION/bin -B /usr/bin -d /var/lib/postgres/olddata -D /var/lib/postgres/data
+
+# ONLY RUN THIS AFTER VERIFYING EVERYTHING IS WORKING PROPERLY !!!
+# postgres creates a `./delete_old_cluster.sh` script for you to cleanup the old database afterwards, you may want to run that
+
+
+
+# refs:
+# https://wiki.archlinux.org/title/PostgreSQL#Upgrading_PostgreSQL
+# https://www.postgresql.org/docs/current/pgupgrade.html
