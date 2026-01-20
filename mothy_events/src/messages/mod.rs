@@ -55,7 +55,7 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) -> Result
     let permissions = msg.author_permissions(&ctx.cache).unwrap_or_default();
     let admin_or_mod = permissions.moderate_members() || permissions.administrator();
 
-    if filters_valid_guild && filters_valid_author && msg.author.bot() && !admin_or_mod {
+    if filters_valid_guild && filters_valid_author && !msg.author.bot() && !admin_or_mod {
         let _ = tokio::join!(
             image_spambot_filter(ctx, &data, msg, attachments),
             regex_blacklist_filter(ctx, &data, msg, guild_name, channel_name, author_string),
