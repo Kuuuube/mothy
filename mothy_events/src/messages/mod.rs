@@ -52,10 +52,12 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) -> Result
         .filter_bypass_roles
         .iter()
         .any(|x| user_roles.contains(x));
+    let permissions = msg.author_permissions(&ctx.cache).unwrap_or_default();
+    let admin_or_mod = permissions.moderate_members() || permissions.administrator();
 
-    if filters_valid_guild && filters_valid_author {
+    if filters_valid_guild && filters_valid_author && msg.author.bot() && !admin_or_mod {
         let _ = tokio::join!(
-            image_spambot_filter(ctx, msg),
+            image_spambot_filter(ctx, &data, msg, attachments),
             regex_blacklist_filter(ctx, &data, msg, guild_name, channel_name, author_string),
         );
     }
@@ -144,7 +146,12 @@ async fn regex_blacklist_filter(
     Ok(())
 }
 
-async fn image_spambot_filter(ctx: &Context, msg: &Message) {
+async fn image_spambot_filter(
+    ctx: &Context,
+    data: &Data,
+    msg: &Message,
+    msg_attachments_str: Option<String>,
+) {
     let mut image_count = 0;
     let mut not_image = 0;
     for attachment in &msg.attachments {
@@ -157,8 +164,42 @@ async fn image_spambot_filter(ctx: &Context, msg: &Message) {
         }
     }
     if image_count >= 3 && not_image == 0 {
-        // Dont do this yet
-        // msg.delete(&ctx.http, None).await;
+        let _ = msg.delete(&ctx.http, None).await;
+        if let Some(blacklist_logs_channel) = data
+            .config
+            .mothy_blacklist_logs_channel
+            .get(&msg.guild_id.unwrap_or_default())
+        {
+            let embed = CreateEmbed::new()
+                .author(
+                    CreateEmbedAuthor::new(&msg.author.name)
+                        .icon_url(msg.author.avatar_url().unwrap_or_default()),
+                )
+                .colour(NEGATIVE_COLOR_HEX)
+                .title("Message Filtered")
+                .description(format!(
+                    "Message sent by <@{}> deleted in <#{}>\n```\n{}\n```",
+                    msg.author.id,
+                    msg.channel_id,
+                    &msg.content_safe(&ctx.cache).replace("`", "\\`")
+                ))
+                .field(
+                    "Reason",
+                    format!("Possible Image Spambot Detected"),
+                    true,
+                )
+                .field(
+                    "Message Attachments",
+                    msg_attachments_str.unwrap_or_default(),
+                    false,
+                )
+                .timestamp(Timestamp::now())
+                .footer(CreateEmbedFooter::new(format!("ID: {}", msg.author.id)));
+
+            let _ = blacklist_logs_channel
+                .send_message(&ctx.http, CreateMessage::new().embed(embed))
+                .await;
+        }
     }
 }
 
