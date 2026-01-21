@@ -197,6 +197,11 @@ async fn image_spambot_filter(
                     message_content_format
                 ))
                 .field(
+                    "Message Attachments",
+                    msg_attachments_str.unwrap_or_default(),
+                    false,
+                )
+                .field(
                     "Reason",
                     format!("Possible Image Spambot Detected"),
                     true,
@@ -205,11 +210,6 @@ async fn image_spambot_filter(
                     "Rule",
                     format!("Users without filter bypass roles or moderator permissions must not send more than {} images in a single message", IMAGE_COUNT_TRIGGER),
                     true,
-                )
-                .field(
-                    "Message Attachments",
-                    msg_attachments_str.unwrap_or_default(),
-                    false,
                 )
                 .timestamp(Timestamp::now())
                 .footer(CreateEmbedFooter::new(format!("ID: {}", msg.author.id)));
