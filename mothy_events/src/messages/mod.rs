@@ -1,8 +1,8 @@
 use mothy_ansi::{CYAN, HI_BLACK, HI_RED, RESET};
 use mothy_core::{error::Error, structs::Data};
 use serenity::all::{
-    Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, Message, Role,
-    Timestamp,
+    Context, CreateAllowedMentions, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter,
+    CreateMessage, Message, Role, Timestamp,
 };
 use std::{fmt::Write, sync::Arc};
 
@@ -152,6 +152,7 @@ async fn image_spambot_filter(
     msg: &Message,
     msg_attachments_str: Option<String>,
 ) {
+    const IMAGE_COUNT_TRIGGER: i32 = 3;
     let mut image_count = 0;
     let mut not_image = 0;
     for attachment in &msg.attachments {
@@ -163,7 +164,11 @@ async fn image_spambot_filter(
             }
         }
     }
-    if image_count >= 3 && not_image == 0 {
+    if image_count >= IMAGE_COUNT_TRIGGER && not_image == 0 {
+        let mentions = CreateAllowedMentions::new()
+            .everyone(false)
+            .all_roles(false)
+            .all_users(false);
         let _ = msg.delete(&ctx.http, None).await;
         if let Some(blacklist_logs_channel) = data
             .config
@@ -171,7 +176,10 @@ async fn image_spambot_filter(
             .get(&msg.guild_id.unwrap_or_default())
         {
             let message_content_format = if msg.content.len() > 0 {
-                format!("```\n{}\n```", &msg.content_safe(&ctx.cache).replace("`", "\\`"))
+                format!(
+                    "```\n{}\n```",
+                    &msg.content_safe(&ctx.cache).replace("`", "\\`")
+                )
             } else {
                 "(No message content)".to_string()
             };
@@ -194,6 +202,11 @@ async fn image_spambot_filter(
                     true,
                 )
                 .field(
+                    "Rule",
+                    format!("Users without filter bypass roles or moderator permissions must not send more than {} images in a single message", IMAGE_COUNT_TRIGGER),
+                    true,
+                )
+                .field(
                     "Message Attachments",
                     msg_attachments_str.unwrap_or_default(),
                     false,
@@ -202,7 +215,10 @@ async fn image_spambot_filter(
                 .footer(CreateEmbedFooter::new(format!("ID: {}", msg.author.id)));
 
             let _ = blacklist_logs_channel
-                .send_message(&ctx.http, CreateMessage::new().embed(embed))
+                .send_message(
+                    &ctx.http,
+                    CreateMessage::new().embed(embed).allowed_mentions(mentions),
+                )
                 .await;
         }
     }
