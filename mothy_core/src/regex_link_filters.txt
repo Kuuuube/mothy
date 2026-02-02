@@ -1012,7 +1012,7 @@ csgo2sourcses\.com
 ://wu\.cz
 ://ww7\.fr
 ://wwy\.me
-://x\.co
+://x\.co/
 ://x\.nu
 ://x\.se
 ://x10\.mx
