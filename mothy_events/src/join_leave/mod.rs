@@ -119,7 +119,7 @@ fn truncate_datetime_string(datetime: DateTime<Utc>) -> String {
         datetime_strings.push(format!("{}y", year));
     }
     if month > 0 {
-        datetime_strings.push(format!("{}m", month));
+        datetime_strings.push(format!("{}M", month));
     }
     if day > 0 {
         datetime_strings.push(format!("{}d", day));
