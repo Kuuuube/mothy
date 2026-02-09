@@ -20,6 +20,7 @@ pub async fn guild_member_addition(
 
     if let Some(join_logs_channel) = data
         .config
+        .logs
         .mothy_join_logs_channel
         .get(&new_member.guild_id)
     {
@@ -76,7 +77,7 @@ pub async fn guild_member_removal(
         user.id
     );
 
-    if let Some(join_logs_channel) = data.config.mothy_join_logs_channel.get(&guild_id) {
+    if let Some(join_logs_channel) = data.config.logs.mothy_join_logs_channel.get(&guild_id) {
         let embed = CreateEmbed::new()
             .author(
                 CreateEmbedAuthor::new(&user.name).icon_url(user.avatar_url().unwrap_or_default()),

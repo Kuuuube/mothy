@@ -28,6 +28,7 @@ pub async fn voice_state_update(
 
     if let Some(logs_channel) = data
         .config
+        .logs
         .mothy_voice_logs_channel
         .get(&new.guild_id.unwrap_or_default())
     {

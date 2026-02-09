@@ -23,11 +23,8 @@ pub struct RegexFilters {
 
 pub struct MothyConfig {
     pub events: Events,
-    pub filters_allowed_guilds: Vec<GuildId>,
-    pub filter_bypass_roles: Vec<RoleId>,
-    pub mothy_join_logs_channel: HashMap<GuildId, GenericChannelId>,
-    pub mothy_blacklist_logs_channel: HashMap<GuildId, GenericChannelId>,
-    pub mothy_voice_logs_channel: HashMap<GuildId, GenericChannelId>,
+    pub filters: Filters,
+    pub logs: Logs,
 }
 
 impl MothyConfig {
@@ -35,25 +32,29 @@ impl MothyConfig {
     pub fn new() -> Self {
         MothyConfig {
             events: Events::default(),
-            // only allow filters to apply to kuuube server and test server
-            filters_allowed_guilds: vec![902907712441040926.into(), 529423189860679702.into()],
-            // regular role on kuuube server, test role on test server
-            filter_bypass_roles: vec![1001489392457760828.into(), 1440516379840090345.into()],
-            // kuuube server join logs channel, test server logs channel
-            mothy_join_logs_channel: HashMap::from([
-                (902907712441040926.into(), 920370368135442442.into()),
-                (529423189860679702.into(), 894927450063138816.into()),
-            ]),
-            // kuuube server blacklist logs channel, test server logs channel
-            mothy_blacklist_logs_channel: HashMap::from([
-                (902907712441040926.into(), 917776727801995304.into()),
-                (529423189860679702.into(), 894927450063138816.into()),
-            ]),
-            // kuuube server voice logs channel, test server logs channel
-            mothy_voice_logs_channel: HashMap::from([
-                (902907712441040926.into(), 1443106469644996668.into()),
-                (529423189860679702.into(), 894927450063138816.into()),
-            ]),
+            filters: Filters {
+                // only allow filters to apply to kuuube server and test server
+                filters_allowed_guilds: vec![902907712441040926.into(), 529423189860679702.into()],
+                // regular role on kuuube server, test role on test server
+                filter_bypass_roles: vec![1001489392457760828.into(), 1440516379840090345.into()],
+            },
+            logs: Logs {
+                // kuuube server join logs channel, test server logs channel
+                mothy_join_logs_channel: HashMap::from([
+                    (902907712441040926.into(), 920370368135442442.into()),
+                    (529423189860679702.into(), 894927450063138816.into()),
+                ]),
+                // kuuube server blacklist logs channel, test server logs channel
+                mothy_blacklist_logs_channel: HashMap::from([
+                    (902907712441040926.into(), 917776727801995304.into()),
+                    (529423189860679702.into(), 894927450063138816.into()),
+                ]),
+                // kuuube server voice logs channel, test server logs channel
+                mothy_voice_logs_channel: HashMap::from([
+                    (902907712441040926.into(), 1443106469644996668.into()),
+                    (529423189860679702.into(), 894927450063138816.into()),
+                ]),
+            },
         }
     }
 }
@@ -63,6 +64,18 @@ pub struct Events {
     pub no_log_channels: Option<Vec<u64>>,
     pub no_log_users: Option<Vec<u64>>,
     pub guild_name_override: Option<HashMap<GuildId, String>>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Filters {
+    pub filters_allowed_guilds: Vec<GuildId>,
+    pub filter_bypass_roles: Vec<RoleId>,
+}
+
+pub struct Logs {
+    pub mothy_join_logs_channel: HashMap<GuildId, GenericChannelId>,
+    pub mothy_blacklist_logs_channel: HashMap<GuildId, GenericChannelId>,
+    pub mothy_voice_logs_channel: HashMap<GuildId, GenericChannelId>,
 }
 
 #[derive(Serialize, Deserialize)]

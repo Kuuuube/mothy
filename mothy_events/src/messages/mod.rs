@@ -45,10 +45,12 @@ pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) -> Result
 
     let filters_valid_guild = data
         .config
+        .filters
         .filters_allowed_guilds
         .contains(&guild_id.unwrap_or_default());
     let filters_valid_author = !data
         .config
+        .filters
         .filter_bypass_roles
         .iter()
         .any(|x| user_roles.contains(x));
@@ -99,6 +101,7 @@ async fn regex_blacklist_filter(
                     );
                     if let Some(blacklist_logs_channel) = data
                         .config
+                        .logs
                         .mothy_blacklist_logs_channel
                         .get(&msg.guild_id.unwrap_or_default())
                     {
@@ -172,6 +175,7 @@ async fn image_spambot_filter(
         let _ = msg.delete(&ctx.http, None).await;
         if let Some(blacklist_logs_channel) = data
             .config
+            .logs
             .mothy_blacklist_logs_channel
             .get(&msg.guild_id.unwrap_or_default())
         {
