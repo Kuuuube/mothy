@@ -2,6 +2,7 @@ pub mod fun;
 pub mod meta;
 pub mod utility;
 
+use mothy_core::structs::CommandData;
 pub use mothy_core::{
     error::Error,
     structs::{Command, Context, Data},
@@ -60,4 +61,12 @@ pub async fn try_strip_prefix<'a>(
     }
 
     Ok(None)
+}
+
+pub fn init_data() -> CommandData {
+    CommandData {
+        urban_link_finder_regex: regex::Regex::new(r"\[(?<word>.*?)\]").unwrap(),
+        urban_link_replacement: r"[$word](https://www.urbandictionary.com/define.php?term=$word)"
+            .to_string(),
+    }
 }

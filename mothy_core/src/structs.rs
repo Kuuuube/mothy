@@ -14,6 +14,12 @@ pub struct Data {
     pub james_scores: Vec<ScoresData>,
     pub regex_filters: RegexFilters,
     pub config: MothyConfig,
+    pub command_data: CommandData,
+}
+
+pub struct CommandData {
+    pub urban_link_finder_regex: regex::Regex,
+    pub urban_link_replacement: String,
 }
 
 pub struct RegexFilters {

@@ -1,5 +1,6 @@
 use crate::{Context, Error};
 
+use mothy_core::structs::CommandData;
 use poise::serenity_prelude as serenity;
 use to_arraystring::ToArrayString;
 
@@ -36,6 +37,8 @@ pub async fn urban(
     ctx: Context<'_>,
     #[description = "Query to search the definition of"] term: String,
 ) -> Result<(), Error> {
+    let command_data = &ctx.data().command_data;
+
     let reqwest = ReqwestClient::new();
     let response = reqwest
         .get("https://api.urbandictionary.com/v0/define")
@@ -61,7 +64,8 @@ pub async fn urban(
         .url(&choice.permalink)
         .description(format!(
             "**Definition:**\n{}\n\n **Example:**\n{}\n\n",
-            &choice.definition, &choice.example
+            inflate_links(&command_data, &choice.definition),
+            inflate_links(&command_data, &choice.example)
         ))
         .field("👍", thumbs_up.as_str(), true)
         .field("👎", thumbs_down.as_str(), true);
@@ -69,6 +73,12 @@ pub async fn urban(
     ctx.send(poise::CreateReply::new().embed(embed)).await?;
 
     Ok(())
+}
+
+pub fn inflate_links<'a>(command_data: &CommandData, text: &'a str) -> std::borrow::Cow<'a, str> {
+    return command_data
+        .urban_link_finder_regex
+        .replace_all(text, &command_data.urban_link_replacement);
 }
 
 #[must_use]

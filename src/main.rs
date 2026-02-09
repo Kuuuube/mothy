@@ -50,6 +50,7 @@ async fn main() {
             james_scores: mothy_core::score_data::init().unwrap_or_default(),
             regex_filters: mothy_core::regex_filters::init(),
             config: mothy_core::structs::MothyConfig::new(),
+            command_data: mothy_commands::init_data(),
         }))
         .await;
 
