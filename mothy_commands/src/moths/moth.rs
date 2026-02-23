@@ -77,7 +77,7 @@ pub async fn moth_search(
             uppercase_genus.get_mut(0..1).and_then(|x| Some(x.make_ascii_uppercase()));
             let embed = serenity::CreateEmbed::default()
                 .description(format!(
-                    "Failed to find moth {} {}.",
+                    "Failed to find moth `{} {}`.",
                     uppercase_genus, epithet_some.to_lowercase()
                 ))
                 .color(serenity::Colour::from_rgb(255, 0, 0));
