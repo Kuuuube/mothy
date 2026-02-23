@@ -100,6 +100,9 @@ This bot is created with [poise](https://github.com/serenity-rs/poise/) which is
     DATABASE_URL=postgres://postgres:{password}@localhost/postgres
     ```
 
+### Misc
+
+1. Run `fetch_moth_data.sh` to grab data for the moth species integrations.
 
 ### Mothy
 
