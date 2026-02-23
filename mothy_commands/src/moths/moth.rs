@@ -1,6 +1,7 @@
 use crate::{Context, Error};
 use poise::serenity_prelude as serenity;
 
+use ::serenity::all::CreateEmbed;
 use rand::seq::IndexedRandom;
 use reqwest::Client as ReqwestClient;
 use serde::Deserialize;
@@ -22,9 +23,18 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
         let mut rng = rand::rng();
         data.moth_data.choose(&mut rng).unwrap()
     };
+    let embed = assemble_moth_embed(moth).await;
+    ctx.send(poise::CreateReply::default().embed(embed)).await?;
+
+    Ok(())
+}
+async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {
     let classifications = moth.classification.clone();
 
-    let title = format!("{} {}", classifications.genus, classifications.epithet);
+    let title = format!(
+        "{} {}",
+        moth.classification.genus, moth.classification.epithet
+    );
 
     let mut fields = vec![];
 
@@ -90,7 +100,7 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
 
     let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
 
-    let embed = serenity::CreateEmbed::default()
+    return serenity::CreateEmbed::default()
         .title(title)
         .url(format!(
             "{CATALOGUE_OF_LIFE_TAXON_URL}{}",
@@ -99,9 +109,6 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
         .fields(fields)
         .thumbnail(thumbnail_url)
         .footer(footer);
-    ctx.send(poise::CreateReply::default().embed(embed)).await?;
-
-    Ok(())
 }
 
 #[derive(Debug, Deserialize)]
