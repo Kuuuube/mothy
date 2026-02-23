@@ -10,7 +10,7 @@ use rand::seq::IndexedRandom;
     install_context = "Guild|User",
     interaction_context = "Guild|BotDm|PrivateChannel",
     category = "Moths",
-    user_cooldown = "4"
+    user_cooldown = "30"
 )]
 pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     let data = ctx.data();
