@@ -3,6 +3,8 @@ use poise::serenity_prelude as serenity;
 
 use rand::seq::IndexedRandom;
 
+const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/taxon/";
+
 /// Find a random moth
 #[poise::command(
     prefix_command,
@@ -48,7 +50,7 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     let embed = serenity::CreateEmbed::default()
         .title(title)
         .url(format!(
-            "https://www.catalogueoflife.org/data/taxon/{}",
+            "{CATALOGUE_OF_LIFE_TAXON_URL}{}",
             moth.catalogue_of_life_taxon_id
         ))
         .fields(fields)
