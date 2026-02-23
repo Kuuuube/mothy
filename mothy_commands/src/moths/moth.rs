@@ -25,9 +25,7 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     let title = format!("{} {}", classifications.genus, classifications.epithet);
 
     let mut fields = vec![];
-    if let Some(common_names) = &moth.common_names {
-        fields.push(("Common Names", common_names.join(", "), false));
-    }
+
     let moth_rank_flow = [
         get_moth_rank_vec(&[
             classifications.superfamily,
@@ -40,12 +38,27 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     ]
     .concat()
     .join(" -> ");
-    fields.push(("Taxa", moth_rank_flow, false));
+    fields.push(("Classification", moth_rank_flow, false));
 
-    let footer = serenity::CreateEmbedFooter::new(format!(
-        "Catalog of Life ID {}",
-        moth.catalogue_of_life_taxon_id
-    ));
+    if let Some(common_names) = &moth.common_names {
+        fields.push(("Common Names", common_names.join(", "), false));
+    }
+
+    if let Some(synonyms) = &moth.synonyms {
+        let synonyms_formatted = synonyms
+            .iter()
+            .map(|x| {
+                format!(
+                    "[{} {}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
+                    x.genus, x.epithet, x.catalogue_of_life_taxon_id
+                )
+            })
+            .collect::<Vec<String>>()
+            .join(", ");
+        fields.push(("Synonyms", synonyms_formatted, false));
+    }
+
+    let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
 
     let embed = serenity::CreateEmbed::default()
         .title(title)
