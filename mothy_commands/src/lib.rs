@@ -1,5 +1,6 @@
 pub mod fun;
 pub mod meta;
+pub mod moths;
 pub mod utility;
 
 use mothy_core::structs::CommandData;
@@ -14,6 +15,7 @@ pub fn commands() -> Vec<crate::Command> {
         .into_iter()
         .chain(fun::commands())
         .chain(utility::commands())
+        .chain(moths::commands())
         .collect();
 
     if std::env::var("DEV_COMMANDS")
