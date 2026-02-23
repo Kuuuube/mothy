@@ -4,3 +4,4 @@ pub mod error;
 pub mod regex_filters;
 pub mod score_data;
 pub mod structs;
+pub mod zstd;
