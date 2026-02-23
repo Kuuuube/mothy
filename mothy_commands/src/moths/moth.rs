@@ -7,6 +7,7 @@ use reqwest::Client as ReqwestClient;
 use serde::Deserialize;
 
 const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/taxon/";
+const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
 
 /// Find a random moth
 #[poise::command(
@@ -28,6 +29,69 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
 
     Ok(())
 }
+
+/// Search for a moth
+#[poise::command(
+    rename = "moth-search",
+    prefix_command,
+    slash_command,
+    install_context = "Guild|User",
+    interaction_context = "Guild|BotDm|PrivateChannel",
+    category = "Moths",
+    user_cooldown = "30"
+)]
+pub async fn moth_search(
+    ctx: Context<'_>,
+    superfamily: Option<String>,
+    family: Option<String>,
+    subfamily: Option<String>,
+    tribe: Option<String>,
+    subtribe: Option<String>,
+    genus: Option<String>,
+    epithet: Option<String>,
+) -> Result<(), Error> {
+    // ugly lepidoptera searching is not allowed (butteryflies)
+    if let Some(superfamily_some) = superfamily
+        && superfamily_some.to_lowercase() == BUTTERFLY_SUPERFAMILY.to_lowercase()
+    {
+        let embed = serenity::CreateEmbed::default()
+            .description("Attempted butterfly search detected. This incident will be reported.")
+            .color(serenity::Colour::from_rgb(255, 0, 0));
+        ctx.send(poise::CreateReply::default().embed(embed)).await?;
+        return Ok(());
+    }
+    let data = ctx.data();
+
+    // specific species search
+    if let Some(genus_some) = genus
+        && let Some(epithet_some) = epithet
+    {
+        if let Some(found_moth) = &data.moth_data.iter().find(|moth| {
+            moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
+                && moth.classification.epithet.to_lowercase() == epithet_some.to_lowercase()
+        }) {
+            let embed = assemble_moth_embed(*found_moth).await;
+            ctx.send(poise::CreateReply::default().embed(embed)).await?;
+        } else {
+            let mut uppercase_genus = genus_some.clone();
+            uppercase_genus.get_mut(0..1).and_then(|x| Some(x.make_ascii_uppercase()));
+            let embed = serenity::CreateEmbed::default()
+                .description(format!(
+                    "Failed to find moth {} {}.",
+                    uppercase_genus, epithet_some.to_lowercase()
+                ))
+                .color(serenity::Colour::from_rgb(255, 0, 0));
+            ctx.send(poise::CreateReply::default().embed(embed)).await?;
+        }
+        return Ok(());
+    }
+
+    // wide search
+    let matches = &data.moth_data.iter().filter(|moth| true);
+
+    Ok(())
+}
+
 async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {
     let classifications = moth.classification.clone();
 
@@ -180,6 +244,6 @@ fn get_moth_rank_vec(input_strings: &[Option<String>]) -> Vec<String> {
 }
 
 #[must_use]
-pub fn commands() -> [crate::Command; 1] {
-    [moth()]
+pub fn commands() -> [crate::Command; 2] {
+    [moth(), moth_search()]
 }
