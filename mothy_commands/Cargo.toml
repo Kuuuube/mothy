@@ -14,3 +14,4 @@ serde_json.workspace = true
 serenity.workspace = true
 to-arraystring.workspace = true
 regex.workspace = true
+moth_filter.workspace = true

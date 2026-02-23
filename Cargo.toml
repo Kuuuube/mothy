@@ -29,6 +29,7 @@ anyhow = "1"
 chrono = "0.4"
 zstd-safe = { version = "7.1.0", features = ["experimental", "std"] }
 regex = "1.11.1"
+moth_filter = { git = "https://github.com/Kuuuube/moth_filter", default-features = false }
 
 
 [workspace.dependencies.serenity]
