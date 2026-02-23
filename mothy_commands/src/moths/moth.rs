@@ -129,6 +129,7 @@ struct INaturalistData {
     wikipedia_url: Option<String>,
 }
 
+// https://api.inaturalist.org/v1/docs/#!/Search/get_search
 async fn try_get_inaturalist_data(species: &str) -> Result<INaturalistData, Error> {
     let reqwest = ReqwestClient::new();
     let response = reqwest
