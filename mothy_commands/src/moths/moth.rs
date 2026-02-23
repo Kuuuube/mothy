@@ -1,4 +1,5 @@
 use crate::{Context, Error};
+use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
 use ::serenity::all::CreateEmbed;
@@ -74,11 +75,14 @@ pub async fn moth_search(
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         } else {
             let mut uppercase_genus = genus_some.clone();
-            uppercase_genus.get_mut(0..1).and_then(|x| Some(x.make_ascii_uppercase()));
+            uppercase_genus
+                .get_mut(0..1)
+                .and_then(|x| Some(x.make_ascii_uppercase()));
             let embed = serenity::CreateEmbed::default()
                 .description(format!(
                     "Failed to find moth `{} {}`.",
-                    uppercase_genus, epithet_some.to_lowercase()
+                    uppercase_genus,
+                    epithet_some.to_lowercase()
                 ))
                 .color(serenity::Colour::from_rgb(255, 0, 0));
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
@@ -87,7 +91,42 @@ pub async fn moth_search(
     }
 
     // wide search
-    let matches = &data.moth_data.iter().filter(|moth| true);
+    let matches: Vec<&SpeciesData> = data
+        .moth_data
+        .iter()
+        .filter(|moth| {
+            if superfamily.is_some() && moth.classification.superfamily != superfamily {
+                return false;
+            }
+            if family.is_some() && moth.classification.family != family {
+                return false;
+            }
+            if subfamily.is_some() && moth.classification.subfamily != subfamily {
+                return false;
+            }
+            if tribe.is_some() && moth.classification.tribe != tribe {
+                return false;
+            }
+            if subtribe.is_some() && moth.classification.subtribe != subtribe {
+                return false;
+            }
+            if let Some(genus_some) = &genus
+                && &moth.classification.genus != genus_some
+            {
+                return false;
+            }
+            if let Some(epithet_some) = &epithet
+                && &moth.classification.epithet != epithet_some
+            {
+                return false;
+            }
+            return true;
+        })
+        .collect();
+
+    let embed =
+        serenity::CreateEmbed::default().description(format!("Found {} moths", matches.len()));
+    ctx.send(poise::CreateReply::default().embed(embed)).await?;
 
     Ok(())
 }
