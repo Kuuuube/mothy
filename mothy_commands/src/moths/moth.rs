@@ -2,6 +2,8 @@ use crate::{Context, Error};
 use poise::serenity_prelude as serenity;
 
 use rand::seq::IndexedRandom;
+use reqwest::Client as ReqwestClient;
+use serde::Deserialize;
 
 const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/taxon/";
 
@@ -62,6 +64,30 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
         fields.push(("Published In", published_in.to_string(), false));
     }
 
+    let inaturalist_data_result = try_get_inaturalist_data(&format!(
+        "{} {}",
+        moth.classification.genus, moth.classification.epithet
+    ))
+    .await;
+    if let Ok(inaturalist_data) = &inaturalist_data_result {
+        fields.push((
+            "Photos",
+            format!("[iNaturalist]({})", inaturalist_data.inaturalist_url),
+            false,
+        ));
+        if let Some(wikipedia_url) = &inaturalist_data.wikipedia_url {
+            fields.push((
+                "More Info",
+                format!("[Wikipedia]({})", wikipedia_url),
+                false,
+            ));
+        }
+    }
+    let thumbnail_url = match inaturalist_data_result {
+        Ok(ok) => ok.photo_url.unwrap_or_default(),
+        Err(_err) => "".to_string(),
+    };
+
     let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
 
     let embed = serenity::CreateEmbed::default()
@@ -71,10 +97,68 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
             moth.catalogue_of_life_taxon_id
         ))
         .fields(fields)
+        .thumbnail(thumbnail_url)
         .footer(footer);
     ctx.send(poise::CreateReply::default().embed(embed)).await?;
 
     Ok(())
+}
+
+#[derive(Debug, Deserialize)]
+struct INaturalistResponse {
+    results: Vec<INaturalistResponseRecord>,
+}
+#[derive(Debug, Deserialize)]
+struct INaturalistResponseRecord {
+    record: INaturalistResponsePhoto,
+}
+#[derive(Debug, Deserialize)]
+struct INaturalistResponsePhoto {
+    id: i128,
+    default_photo: Option<INaturalistResponseDefaultPhoto>,
+    wikipedia_url: Option<String>,
+}
+#[derive(Debug, Deserialize)]
+struct INaturalistResponseDefaultPhoto {
+    medium_url: String,
+}
+#[derive(Debug)]
+struct INaturalistData {
+    inaturalist_url: String,
+    photo_url: Option<String>,
+    wikipedia_url: Option<String>,
+}
+
+async fn try_get_inaturalist_data(species: &str) -> Result<INaturalistData, Error> {
+    let reqwest = ReqwestClient::new();
+    let response = reqwest
+        .get("https://api.inaturalist.org/v1/search")
+        .query(&[
+            ("q", species),
+            ("sources", "taxa"),
+            ("include_taxon_ancestors", "false"),
+        ])
+        .send()
+        .await?
+        .json::<INaturalistResponse>()
+        .await?;
+
+    if let Some(first_result) = response.results.get(0) {
+        return Ok(INaturalistData {
+            inaturalist_url: format!(
+                "https://www.inaturalist.org/taxa/{}",
+                first_result.record.id
+            )
+            .to_string(),
+            photo_url: first_result
+                .record
+                .default_photo
+                .as_ref()
+                .map(|x| x.medium_url.clone()),
+            wikipedia_url: first_result.record.wikipedia_url.clone(),
+        });
+    }
+    return Err(Error::Custom("No results found".into()));
 }
 
 fn get_moth_rank_vec(input_strings: &[Option<String>]) -> Vec<String> {
