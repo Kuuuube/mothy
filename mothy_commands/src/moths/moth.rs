@@ -58,6 +58,10 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
         fields.push(("Synonyms", synonyms_formatted, false));
     }
 
+    if let Some(published_in) = &moth.published_in {
+        fields.push(("Published In", published_in.to_string(), false));
+    }
+
     let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
 
     let embed = serenity::CreateEmbed::default()
