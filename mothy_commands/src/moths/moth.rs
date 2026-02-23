@@ -51,7 +51,7 @@ pub async fn moth_search(
     epithet: Option<String>,
 ) -> Result<(), Error> {
     // ugly lepidoptera searching is not allowed (butteryflies)
-    if let Some(superfamily_some) = superfamily
+    if let Some(superfamily_some) = &superfamily
         && superfamily_some.to_lowercase() == BUTTERFLY_SUPERFAMILY.to_lowercase()
     {
         let embed = serenity::CreateEmbed::default()
@@ -63,8 +63,8 @@ pub async fn moth_search(
     let data = ctx.data();
 
     // specific species search
-    if let Some(genus_some) = genus
-        && let Some(epithet_some) = epithet
+    if let Some(genus_some) = &genus
+        && let Some(epithet_some) = &epithet
     {
         if let Some(found_moth) = &data.moth_data.iter().find(|moth| {
             moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
