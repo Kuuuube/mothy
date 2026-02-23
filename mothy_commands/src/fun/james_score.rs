@@ -6,6 +6,7 @@ use rand::seq::IndexedRandom;
 
 /// Show a random osu! score from James
 #[poise::command(
+    rename = "james-score",
     prefix_command,
     slash_command,
     install_context = "Guild|User",
@@ -13,7 +14,7 @@ use rand::seq::IndexedRandom;
     category = "Fun",
     user_cooldown = "4"
 )]
-pub async fn jamesscore(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn james_score(ctx: Context<'_>) -> Result<(), Error> {
     let scores = &ctx.data().james_scores;
     let score = {
         let mut rng = rand::rng();
@@ -116,5 +117,5 @@ fn format_duration_secs(duration: u64) -> String {
 
 #[must_use]
 pub fn commands() -> [crate::Command; 1] {
-    [jamesscore()]
+    [james_score()]
 }

@@ -5,6 +5,7 @@ use poise::serenity_prelude::{self as serenity, CreateAllowedMentions};
 
 /// Convert bad git patches created on Windows to patches easily readable on Linux
 #[poise::command(
+    rename = "patch-fix",
     slash_command,
     category = "Utility",
     install_context = "Guild|User",
