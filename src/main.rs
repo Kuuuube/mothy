@@ -1,6 +1,7 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::wildcard_imports, clippy::unused_async)]
 
+use mothy_core::moth_data;
 use poise::serenity_prelude as serenity;
 use std::sync::{atomic::AtomicBool, Arc};
 
@@ -51,6 +52,7 @@ async fn main() {
             regex_filters: mothy_core::regex_filters::init(),
             config: mothy_core::structs::MothyConfig::new(),
             command_data: mothy_commands::init_data(),
+            moth_data: moth_data::init().unwrap_or_default(),
         }))
         .await;
 

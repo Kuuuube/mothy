@@ -1651,6 +1651,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "moth_filter"
+version = "0.1.0"
+source = "git+https://github.com/Kuuuube/moth_filter#4e3c33f4aca5eb238e2d890e90dffb3d5f014f66"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "mothy"
 version = "0.1.0"
 dependencies = [
@@ -1697,6 +1705,7 @@ dependencies = [
  "chrono",
  "dashmap 6.1.0",
  "fancy-regex",
+ "moth_filter",
  "poise",
  "regex",
  "serde",

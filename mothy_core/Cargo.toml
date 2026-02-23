@@ -19,3 +19,4 @@ serenity.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
 zstd-safe = { version = "7.1.0", features = ["experimental", "std"] }
+moth_filter = { git = "https://github.com/Kuuuube/moth_filter" }
