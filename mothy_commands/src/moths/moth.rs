@@ -26,6 +26,10 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
 
     let mut fields = vec![];
 
+    if let Some(common_names) = &moth.common_names {
+        fields.push(("Common Names", common_names.join(", "), false));
+    }
+
     let moth_rank_flow = [
         get_moth_rank_vec(&[
             classifications.superfamily,
@@ -39,10 +43,6 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     .concat()
     .join(" -> ");
     fields.push(("Classification", moth_rank_flow, false));
-
-    if let Some(common_names) = &moth.common_names {
-        fields.push(("Common Names", common_names.join(", "), false));
-    }
 
     if let Some(synonyms) = &moth.synonyms {
         let synonyms_formatted = synonyms
