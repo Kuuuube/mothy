@@ -137,6 +137,14 @@ pub async fn moth_search(
         })
         .collect();
 
+    let moth_count = moths_found.len();
+
+    if moth_count == 0 {
+        let embed = serenity::CreateEmbed::default().title("Search found 0 moths");
+        ctx.send(poise::CreateReply::default().embed(embed)).await?;
+        return Ok(());
+    }
+
     moths_found.sort_by(|a, b| {
         format!("{} {}", a.classification.genus, a.classification.epithet).cmp(&format!(
             "{} {}",
@@ -144,7 +152,6 @@ pub async fn moth_search(
         ))
     });
 
-    let moth_count = moths_found.len();
     let mut page_number = 0;
     let pagecount = (moth_count + MOTHS_PER_PAGE - 1) / MOTHS_PER_PAGE; // int division that rounds up
     let embed =
