@@ -6,7 +6,7 @@ use poise::serenity_prelude as serenity;
 
 use ::serenity::{
     all::{ComponentInteractionCollector, CreateEmbed, CreateInteractionResponse},
-    futures::StreamExt
+    futures::StreamExt,
 };
 use rand::seq::IndexedRandom;
 use reqwest::Client as ReqwestClient;
@@ -16,8 +16,10 @@ const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/
 const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
 
 const MOTHS_PER_PAGE: usize = 10;
+const BUTTON_ID_FIRST: &str = "First";
 const BUTTON_ID_BACK: &str = "Back";
 const BUTTON_ID_FORWARD: &str = "Forward";
+const BUTTON_ID_LAST: &str = "Last";
 
 /// Find a random moth
 #[poise::command(
@@ -161,6 +163,31 @@ pub async fn moth_search(
 
     while let Some(interaction) = interaction_collector.next().await {
         match interaction.data.custom_id.clone().into_string().as_str() {
+            BUTTON_ID_FIRST => {
+                if page_number == 0 {
+                    continue;
+                }
+                page_number = 0;
+                bot_message
+                    .edit(
+                        ctx,
+                        poise::CreateReply::default()
+                            .embed(assemble_paginated_moth_search_embed(
+                                &moths_found,
+                                moth_count,
+                                page_number,
+                                pagecount,
+                            ))
+                            .components(&[get_pagination_buttons(page_number, pagecount)]),
+                    )
+                    .await?;
+                interaction
+                    .create_response(
+                        &ctx.serenity_context().http,
+                        CreateInteractionResponse::Acknowledge,
+                    )
+                    .await?;
+            }
             BUTTON_ID_BACK => {
                 if page_number == 0 {
                     continue;
@@ -187,10 +214,35 @@ pub async fn moth_search(
                     .await?;
             }
             BUTTON_ID_FORWARD => {
-                if page_number == pagecount {
+                if page_number == pagecount - 1 {
                     continue;
                 }
                 page_number += 1;
+                bot_message
+                    .edit(
+                        ctx,
+                        poise::CreateReply::default()
+                            .embed(assemble_paginated_moth_search_embed(
+                                &moths_found,
+                                moth_count,
+                                page_number,
+                                pagecount,
+                            ))
+                            .components(&[get_pagination_buttons(page_number, pagecount)]),
+                    )
+                    .await?;
+                interaction
+                    .create_response(
+                        &ctx.serenity_context().http,
+                        CreateInteractionResponse::Acknowledge,
+                    )
+                    .await?;
+            }
+            BUTTON_ID_LAST => {
+                if page_number == pagecount - 1 {
+                    continue;
+                }
+                page_number = pagecount - 1;
                 bot_message
                     .edit(
                         ctx,
@@ -265,14 +317,20 @@ fn get_pagination_buttons<'a>(
     current_page: usize,
     last_page: usize,
 ) -> serenity::CreateComponent<'a> {
+    let first_button = serenity::CreateButton::new(BUTTON_ID_FIRST)
+        .label("⏮️")
+        .disabled(current_page == 0);
     let back_button = serenity::CreateButton::new(BUTTON_ID_BACK)
         .label("◀️")
         .disabled(current_page == 0);
     let forward_button = serenity::CreateButton::new(BUTTON_ID_FORWARD)
         .label("▶️")
         .disabled(current_page == last_page - 1);
+    let last_button = serenity::CreateButton::new(BUTTON_ID_LAST)
+        .label("⏭️")
+        .disabled(current_page == last_page - 1);
     return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
-        vec![back_button, forward_button].into(),
+        vec![first_button, back_button, forward_button, last_button].into(),
     ));
 }
 
