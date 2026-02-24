@@ -1,14 +1,23 @@
+use std::time::Duration;
+
 use crate::{Context, Error};
 use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
-use ::serenity::all::CreateEmbed;
+use ::serenity::{
+    all::{ComponentInteractionCollector, CreateEmbed, CreateInteractionResponse},
+    futures::StreamExt
+};
 use rand::seq::IndexedRandom;
 use reqwest::Client as ReqwestClient;
 use serde::Deserialize;
 
 const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/taxon/";
 const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
+
+const MOTHS_PER_PAGE: usize = 10;
+const BUTTON_ID_BACK: &str = "Back";
+const BUTTON_ID_FORWARD: &str = "Forward";
 
 /// Find a random moth
 #[poise::command(
@@ -91,7 +100,7 @@ pub async fn moth_search(
     }
 
     // wide search
-    let matches: Vec<&SpeciesData> = data
+    let moths_found: Vec<&SpeciesData> = data
         .moth_data
         .iter()
         .filter(|moth| {
@@ -124,11 +133,141 @@ pub async fn moth_search(
         })
         .collect();
 
+    let moth_count = moths_found.len();
+    let mut page_number = 0;
+    let pagecount = (moth_count + MOTHS_PER_PAGE - 1) / MOTHS_PER_PAGE; // int division that rounds up
     let embed =
-        serenity::CreateEmbed::default().description(format!("Found {} moths", matches.len()));
-    ctx.send(poise::CreateReply::default().embed(embed)).await?;
+        assemble_paginated_moth_search_embed(&moths_found, moth_count, page_number, pagecount);
+
+    let bot_message = ctx
+        .send(
+            poise::CreateReply::default()
+                .embed(embed.clone())
+                .components(&[get_pagination_buttons(page_number, pagecount)]),
+        )
+        .await?;
+
+    let mut interaction_collector = ComponentInteractionCollector::new(&ctx.serenity_context())
+        .timeout(Duration::from_secs(60))
+        .message_id(bot_message.message().await?.id)
+        .stream();
+
+    while let Some(interaction) = interaction_collector.next().await {
+        match interaction.data.custom_id.clone().into_string().as_str() {
+            BUTTON_ID_BACK => {
+                if page_number == 0 {
+                    continue;
+                }
+                page_number -= 1;
+                bot_message
+                    .edit(
+                        ctx,
+                        poise::CreateReply::default()
+                            .embed(assemble_paginated_moth_search_embed(
+                                &moths_found,
+                                moth_count,
+                                page_number,
+                                pagecount,
+                            ))
+                            .components(&[get_pagination_buttons(page_number, pagecount)]),
+                    )
+                    .await?;
+                interaction
+                    .create_response(
+                        &ctx.serenity_context().http,
+                        CreateInteractionResponse::Acknowledge,
+                    )
+                    .await?;
+            }
+            BUTTON_ID_FORWARD => {
+                if page_number == pagecount {
+                    continue;
+                }
+                page_number += 1;
+                bot_message
+                    .edit(
+                        ctx,
+                        poise::CreateReply::default()
+                            .embed(assemble_paginated_moth_search_embed(
+                                &moths_found,
+                                moth_count,
+                                page_number,
+                                pagecount,
+                            ))
+                            .components(&[get_pagination_buttons(page_number, pagecount)]),
+                    )
+                    .await?;
+                interaction
+                    .create_response(
+                        &ctx.serenity_context().http,
+                        CreateInteractionResponse::Acknowledge,
+                    )
+                    .await?;
+            }
+            _ => (),
+        };
+    }
+
+    // edit out buttons after timeout
+    bot_message
+        .edit(
+            ctx,
+            poise::CreateReply::default().embed(embed).components(&[]),
+        )
+        .await?;
 
     Ok(())
+}
+
+fn assemble_paginated_moth_search_embed<'a>(
+    moths: &Vec<&SpeciesData>,
+    moth_count: usize,
+    page_number: usize,
+    pagecount: usize,
+) -> CreateEmbed<'a> {
+    let header = format!(
+        "Found {} moths, page {}/{}",
+        moth_count,
+        page_number + 1,
+        pagecount
+    );
+
+    let start = page_number * MOTHS_PER_PAGE;
+    let mut end = start + MOTHS_PER_PAGE;
+    if end >= moth_count {
+        end = moth_count;
+    }
+
+    let mut moths = moths[start..end]
+        .iter()
+        .map(|x| {
+            format!(
+                "[{} {}]({}{})",
+                x.classification.genus.clone(),
+                x.classification.epithet.clone(),
+                CATALOGUE_OF_LIFE_TAXON_URL,
+                x.catalogue_of_life_taxon_id
+            )
+        })
+        .collect::<Vec<String>>();
+    moths.sort();
+
+    return serenity::CreateEmbed::default().description(format!("{header}\n{}", moths.join("\n")));
+}
+
+fn get_pagination_buttons<'a>(
+    current_page: usize,
+    last_page: usize,
+) -> serenity::CreateComponent<'a> {
+    let back_button = serenity::CreateButton::new(BUTTON_ID_BACK)
+        .label("◀️")
+        .disabled(current_page == 0);
+    let forward_button = serenity::CreateButton::new(BUTTON_ID_FORWARD)
+        .label("▶️")
+        .disabled(current_page == last_page - 1);
+    return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
+        vec![back_button, forward_button].into(),
+    ));
 }
 
 async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {

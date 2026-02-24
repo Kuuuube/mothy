@@ -35,7 +35,7 @@ moth_filter = { git = "https://github.com/Kuuuube/moth_filter", default-features
 [workspace.dependencies.serenity]
 git = "https://github.com/serenity-rs/serenity"
 #path = "../serenity"
-features = ["temp_cache"]
+features = ["temp_cache", "collector"]
 default-features = false
 branch = "next"
 
