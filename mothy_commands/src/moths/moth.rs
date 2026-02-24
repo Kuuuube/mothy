@@ -72,6 +72,7 @@ pub async fn moth_search(
         ctx.send(poise::CreateReply::default().embed(embed)).await?;
         return Ok(());
     }
+
     let data = ctx.data();
 
     // specific species search
