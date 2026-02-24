@@ -268,10 +268,18 @@ pub async fn moth_search(
     }
 
     // edit out buttons after timeout
+    // redoing the embed here is inefficient and unnecessary but it also doesn't really matter
     bot_message
         .edit(
             ctx,
-            poise::CreateReply::default().embed(embed).components(&[]),
+            poise::CreateReply::default()
+                .embed(assemble_paginated_moth_search_embed(
+                    &moths_found,
+                    moth_count,
+                    page_number,
+                    pagecount,
+                ))
+                .components(&[]),
         )
         .await?;
 
