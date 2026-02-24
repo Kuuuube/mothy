@@ -108,28 +108,13 @@ pub async fn moth_search(
         .moth_data
         .iter()
         .filter(|moth| {
-            if superfamily.is_some() && moth.classification.superfamily != superfamily {
-                return false;
-            }
-            if family.is_some() && moth.classification.family != family {
-                return false;
-            }
-            if subfamily.is_some() && moth.classification.subfamily != subfamily {
-                return false;
-            }
-            if tribe.is_some() && moth.classification.tribe != tribe {
-                return false;
-            }
-            if subtribe.is_some() && moth.classification.subtribe != subtribe {
-                return false;
-            }
-            if let Some(genus_some) = &genus
-                && &moth.classification.genus != genus_some
-            {
-                return false;
-            }
-            if let Some(epithet_some) = &epithet
-                && &moth.classification.epithet != epithet_some
+            if !search_classification_valid(&superfamily, &moth.classification.superfamily)
+                || !search_classification_valid(&family, &moth.classification.family)
+                || !search_classification_valid(&subfamily, &moth.classification.subfamily)
+                || !search_classification_valid(&tribe, &moth.classification.tribe)
+                || !search_classification_valid(&subtribe, &moth.classification.subtribe)
+                || !search_classification_valid(&genus, &Some(&moth.classification.genus))
+                || !search_classification_valid(&epithet, &Some(&moth.classification.epithet))
             {
                 return false;
             }
@@ -293,6 +278,23 @@ pub async fn moth_search(
         .await?;
 
     Ok(())
+}
+
+fn search_classification_valid<A: AsRef<str>, B: AsRef<str>>(
+    search_input: &Option<A>,
+    check_against: &Option<B>,
+) -> bool {
+    if let Some(search_input_string) = &search_input {
+        return check_against
+            .as_ref()
+            .and_then(|check_against_string| {
+                let check_against_str: &str = check_against_string.as_ref();
+                let search_input_str: &str = search_input_string.as_ref();
+                Some(check_against_str.eq_ignore_ascii_case(search_input_str))
+            })
+            .unwrap_or(false); // search requested on classification but moth doesnt contain classification = invalid (`false`)
+    }
+    return true; // no search requested (`search_input` == None)
 }
 
 fn assemble_paginated_moth_search_embed<'a>(
