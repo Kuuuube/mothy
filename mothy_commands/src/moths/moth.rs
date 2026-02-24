@@ -295,13 +295,21 @@ fn assemble_paginated_moth_search_embed<'a>(
     pagecount: usize,
 ) -> CreateEmbed<'a> {
     let title = format!("Search found {moth_count} moths");
-    let footer = format!("Page {}/{}", page_number + 1, pagecount);
 
     let start = page_number * MOTHS_PER_PAGE;
     let mut end = start + MOTHS_PER_PAGE;
     if end >= moth_count {
         end = moth_count;
     }
+
+    let footer = format!(
+        "Page {}/{} - Showing moths {}-{}/{}",
+        page_number + 1,
+        pagecount,
+        start + 1,
+        end,
+        moth_count
+    );
 
     let moths = moths[start..end]
         .iter()
