@@ -90,12 +90,11 @@ pub async fn moth_search(
             uppercase_genus
                 .get_mut(0..1)
                 .and_then(|x| Some(x.make_ascii_uppercase()));
-            let embed = serenity::CreateEmbed::default()
-                .description(format!(
-                    "Failed to find moth `{} {}`.",
-                    uppercase_genus,
-                    epithet_some.to_lowercase()
-                ));
+            let embed = serenity::CreateEmbed::default().description(format!(
+                "Failed to find moth `{} {}`.",
+                uppercase_genus,
+                epithet_some.to_lowercase()
+            ));
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         }
         return Ok(());
