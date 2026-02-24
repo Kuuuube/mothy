@@ -5,7 +5,9 @@ use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
 use ::serenity::{
-    all::{ComponentInteractionCollector, CreateEmbed, CreateInteractionResponse},
+    all::{
+        ComponentInteractionCollector, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,
+    },
     futures::StreamExt,
 };
 use rand::seq::IndexedRandom;
@@ -292,12 +294,8 @@ fn assemble_paginated_moth_search_embed<'a>(
     page_number: usize,
     pagecount: usize,
 ) -> CreateEmbed<'a> {
-    let header = format!(
-        "Found {} moths, page {}/{}",
-        moth_count,
-        page_number + 1,
-        pagecount
-    );
+    let title = format!("Search found {moth_count} moths");
+    let footer = format!("Page {}/{}", page_number + 1, pagecount);
 
     let start = page_number * MOTHS_PER_PAGE;
     let mut end = start + MOTHS_PER_PAGE;
@@ -318,7 +316,10 @@ fn assemble_paginated_moth_search_embed<'a>(
         })
         .collect::<Vec<String>>();
 
-    return serenity::CreateEmbed::default().description(format!("{header}\n{}", moths.join("\n")));
+    return serenity::CreateEmbed::default()
+        .title(title)
+        .footer(CreateEmbedFooter::new(footer))
+        .description(moths.join("\n"));
 }
 
 fn get_pagination_buttons<'a>(
