@@ -100,7 +100,7 @@ pub async fn moth_search(
     }
 
     // wide search
-    let moths_found: Vec<&SpeciesData> = data
+    let mut moths_found: Vec<&SpeciesData> = data
         .moth_data
         .iter()
         .filter(|moth| {
@@ -132,6 +132,13 @@ pub async fn moth_search(
             return true;
         })
         .collect();
+
+    moths_found.sort_by(|a, b| {
+        format!("{} {}", a.classification.genus, a.classification.epithet).cmp(&format!(
+            "{} {}",
+            b.classification.genus, b.classification.epithet
+        ))
+    });
 
     let moth_count = moths_found.len();
     let mut page_number = 0;
@@ -238,7 +245,7 @@ fn assemble_paginated_moth_search_embed<'a>(
         end = moth_count;
     }
 
-    let mut moths = moths[start..end]
+    let moths = moths[start..end]
         .iter()
         .map(|x| {
             format!(
@@ -250,7 +257,6 @@ fn assemble_paginated_moth_search_embed<'a>(
             )
         })
         .collect::<Vec<String>>();
-    moths.sort();
 
     return serenity::CreateEmbed::default().description(format!("{header}\n{}", moths.join("\n")));
 }
