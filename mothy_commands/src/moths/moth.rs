@@ -94,8 +94,7 @@ pub async fn moth_search(
                     "Failed to find moth `{} {}`.",
                     uppercase_genus,
                     epithet_some.to_lowercase()
-                ))
-                .color(serenity::Colour::from_rgb(255, 0, 0));
+                ));
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         }
         return Ok(());
