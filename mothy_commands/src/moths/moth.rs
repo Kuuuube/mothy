@@ -16,7 +16,7 @@ const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/
 const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
 
 const MOTHS_PER_PAGE: usize = 10;
-const MOTH_SEARCH_INTERACTION_TIMEOUT: u64 = 60;
+const MOTH_SEARCH_INTERACTION_TIMEOUT: u64 = 300;
 const BUTTON_ID_FIRST: &str = "First";
 const BUTTON_ID_BACK: &str = "Back";
 const BUTTON_ID_FORWARD: &str = "Forward";
