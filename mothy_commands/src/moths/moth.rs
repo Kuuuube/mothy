@@ -371,11 +371,14 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
     ))
     .await;
     if let Ok(inaturalist_data) = &inaturalist_data_result {
-        fields.push((
-            "Photos",
-            format!("[iNaturalist]({})", inaturalist_data.inaturalist_url),
-            false,
-        ));
+        // the iNaturalist ID will always be present but don't bother linking photos if there are none
+        if inaturalist_data.photo_url.is_some() {
+            fields.push((
+                "Photos",
+                format!("[iNaturalist]({})", inaturalist_data.inaturalist_url),
+                false,
+            ));
+        }
         if let Some(wikipedia_url) = &inaturalist_data.wikipedia_url {
             fields.push((
                 "More Info",
