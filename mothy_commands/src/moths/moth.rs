@@ -35,7 +35,9 @@ const BUTTON_ID_LAST: &str = "Last";
 )]
 pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     // this command's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
-    ctx.defer().await.expect("moth command response defer fail, this shouldn't happen");
+    ctx.defer()
+        .await
+        .expect("moth command response defer fail, this shouldn't happen");
 
     let data = ctx.data();
     let moth = {
@@ -69,7 +71,9 @@ pub async fn moth_search(
     epithet: Option<String>,
 ) -> Result<(), Error> {
     // this command's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
-    ctx.defer().await.expect("moth_search command response defer fail, this shouldn't happen");
+    ctx.defer()
+        .await
+        .expect("moth_search command response defer fail, this shouldn't happen");
 
     // ugly lepidoptera searching is not allowed (butteryflies)
     if let Some(superfamily_some) = &superfamily
@@ -163,7 +167,10 @@ pub async fn moth_search(
 
     while let Some(interaction) = interaction_collector.next().await {
         // this interactions's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
-        interaction.defer(ctx.http()).await.expect("Interaction defer fail, this shouldn't happen");
+        interaction
+            .defer(ctx.http())
+            .await
+            .expect("Interaction defer fail, this shouldn't happen");
         match interaction.data.custom_id.clone().into_string().as_str() {
             BUTTON_ID_FIRST => {
                 if page_number == 0 {
