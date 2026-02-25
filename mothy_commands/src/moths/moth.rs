@@ -177,103 +177,47 @@ pub async fn moth_search(
                     continue;
                 }
                 page_number = 0;
-                bot_message
-                    .edit(
-                        ctx,
-                        poise::CreateReply::default()
-                            .embed(assemble_paginated_moth_search_embed(
-                                &moths_found,
-                                moth_count,
-                                page_number,
-                                pagecount,
-                            ))
-                            .components(&[get_pagination_buttons(page_number, pagecount)]),
-                    )
-                    .await?;
-                interaction
-                    .create_response(
-                        &ctx.serenity_context().http,
-                        CreateInteractionResponse::Acknowledge,
-                    )
-                    .await?;
             }
             BUTTON_ID_BACK => {
                 if page_number == 0 {
                     continue;
                 }
                 page_number -= 1;
-                bot_message
-                    .edit(
-                        ctx,
-                        poise::CreateReply::default()
-                            .embed(assemble_paginated_moth_search_embed(
-                                &moths_found,
-                                moth_count,
-                                page_number,
-                                pagecount,
-                            ))
-                            .components(&[get_pagination_buttons(page_number, pagecount)]),
-                    )
-                    .await?;
-                interaction
-                    .create_response(
-                        &ctx.serenity_context().http,
-                        CreateInteractionResponse::Acknowledge,
-                    )
-                    .await?;
             }
             BUTTON_ID_FORWARD => {
                 if page_number == pagecount - 1 {
                     continue;
                 }
                 page_number += 1;
-                bot_message
-                    .edit(
-                        ctx,
-                        poise::CreateReply::default()
-                            .embed(assemble_paginated_moth_search_embed(
-                                &moths_found,
-                                moth_count,
-                                page_number,
-                                pagecount,
-                            ))
-                            .components(&[get_pagination_buttons(page_number, pagecount)]),
-                    )
-                    .await?;
-                interaction
-                    .create_response(
-                        &ctx.serenity_context().http,
-                        CreateInteractionResponse::Acknowledge,
-                    )
-                    .await?;
             }
             BUTTON_ID_LAST => {
                 if page_number == pagecount - 1 {
                     continue;
                 }
                 page_number = pagecount - 1;
-                bot_message
-                    .edit(
-                        ctx,
-                        poise::CreateReply::default()
-                            .embed(assemble_paginated_moth_search_embed(
-                                &moths_found,
-                                moth_count,
-                                page_number,
-                                pagecount,
-                            ))
-                            .components(&[get_pagination_buttons(page_number, pagecount)]),
-                    )
-                    .await?;
-                interaction
-                    .create_response(
-                        &ctx.serenity_context().http,
-                        CreateInteractionResponse::Acknowledge,
-                    )
-                    .await?;
             }
-            _ => (),
+            _ => continue,
         };
+
+        bot_message
+            .edit(
+                ctx,
+                poise::CreateReply::default()
+                    .embed(assemble_paginated_moth_search_embed(
+                        &moths_found,
+                        moth_count,
+                        page_number,
+                        pagecount,
+                    ))
+                    .components(&[get_pagination_buttons(page_number, pagecount)]),
+            )
+            .await?;
+        interaction
+            .create_response(
+                &ctx.serenity_context().http,
+                CreateInteractionResponse::Acknowledge,
+            )
+            .await?;
     }
 
     // edit out buttons after timeout
