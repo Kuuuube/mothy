@@ -321,7 +321,10 @@ fn get_pagination_buttons<'a>(
 }
 
 async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {
-    let reqwest_client = ReqwestClient::new();
+    let reqwest_client = ReqwestClient::builder()
+        .timeout(Duration::from_secs(60))
+        .build()
+        .unwrap();
     let classifications = moth.classification.clone();
 
     let title = format!(
