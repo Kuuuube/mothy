@@ -1,5 +1,8 @@
 use crate::{Context, Error};
 
+const JAMES_SOURCE_URL: &str = "https://github.com/jamesbt365/mothy";
+pub const KUUUBE_SOURCE_URL: &str = "https://github.com/Kuuuube/mothy";
+
 /// Post the link to the bots source code.
 #[poise::command(
     slash_command,
@@ -9,9 +12,9 @@ use crate::{Context, Error};
     interaction_context = "Guild|BotDm|PrivateChannel"
 )]
 pub async fn source(ctx: Context<'_>) -> Result<(), Error> {
-    ctx.say(
-        "Original: <https://github.com/jamesbt365/mothy>, Fork: <https://github.com/Kuuuube/mothy>",
-    )
+    ctx.say(format!(
+        "Original: <{JAMES_SOURCE_URL}>, Fork: <{KUUUBE_SOURCE_URL}>"
+    ))
     .await?;
     Ok(())
 }
