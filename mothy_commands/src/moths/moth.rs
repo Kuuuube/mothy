@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{Context, Error};
+use crate::{Context, Error, meta::KUUUBE_SOURCE_URL};
 use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
@@ -11,7 +11,7 @@ use ::serenity::{
     futures::StreamExt,
 };
 use rand::seq::IndexedRandom;
-use reqwest::Client as ReqwestClient;
+use reqwest::{Client as ReqwestClient, header::USER_AGENT};
 use serde::Deserialize;
 
 const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/taxon/";
@@ -503,6 +503,9 @@ async fn try_get_gbif_data(reqwest: &ReqwestClient, species: &str) -> Result<GBI
     let response = reqwest
         .get("https://api.gbif.org/v2/species/match")
         .query(&[("scientificName", species)])
+        // user agent with identifying url as requested by GBIF at https://techdocs.gbif.org/en/openapi/#rate-limits
+        // "If you are integrating the GBIF API into a website or app, we highly recommend you set the HTTP `User-Agent` to a URL or email address. We can then contact you if there is a problem."
+        .header("User-Agent", format!("{USER_AGENT} {KUUUBE_SOURCE_URL}"))
         .send()
         .await?
         .json::<GBIFResponse>()
