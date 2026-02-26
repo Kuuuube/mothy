@@ -15,6 +15,7 @@ use reqwest::Client as ReqwestClient;
 use serde::Deserialize;
 
 const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/taxon/";
+const GBIF_SPECIES_URL: &str = "https://www.gbif.org/species/";
 const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
 
 const MOTHS_PER_PAGE: usize = 10;
@@ -365,11 +366,14 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
         fields.push(("Published In", published_in.to_string(), false));
     }
 
-    let inaturalist_data_result = try_get_inaturalist_data(&format!(
+    let species_formatted = format!(
         "{} {}",
         moth.classification.genus, moth.classification.epithet
-    ))
-    .await;
+    );
+
+    let mut more_info_field_urls: Vec<String> = Vec::new();
+
+    let inaturalist_data_result = try_get_inaturalist_data(&species_formatted).await;
     if let Ok(inaturalist_data) = &inaturalist_data_result {
         // the iNaturalist ID will always be present but don't bother linking photos if there are none
         if inaturalist_data.photo_url.is_some() {
@@ -380,17 +384,21 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
             ));
         }
         if let Some(wikipedia_url) = &inaturalist_data.wikipedia_url {
-            fields.push((
-                "More Info",
-                format!("[Wikipedia]({})", wikipedia_url),
-                false,
-            ));
+            more_info_field_urls.push(format!("[Wikipedia]({})", wikipedia_url));
         }
     }
     let thumbnail_url = match inaturalist_data_result {
         Ok(ok) => ok.photo_url.unwrap_or_default(),
         Err(_err) => "".to_string(),
     };
+
+    if let Ok(gbif_data) = try_get_gbif_data(&species_formatted).await {
+        more_info_field_urls.push(format!("[GBIF]({GBIF_SPECIES_URL}{})", gbif_data.usage_key));
+    }
+
+    if more_info_field_urls.len() > 0 {
+        fields.push(("More Info", more_info_field_urls.join("\n"), false));
+    }
 
     let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
 
@@ -460,7 +468,46 @@ async fn try_get_inaturalist_data(species: &str) -> Result<INaturalistData, Erro
             wikipedia_url: first_result.record.wikipedia_url.clone(),
         });
     }
-    return Err(Error::Custom("No results found".into()));
+    return Err(Error::Custom(
+        format!("No iNaturalist results found for {species}").into(),
+    ));
+}
+
+#[derive(Debug, Deserialize)]
+struct GBIFResponse {
+    usage: Option<GBIFResponseUsage>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GBIFResponseUsage {
+    key: String,
+}
+
+#[derive(Debug)]
+struct GBIFData {
+    usage_key: String,
+}
+
+// https://techdocs.gbif.org/en/openapi/v1/species#/
+async fn try_get_gbif_data(species: &str) -> Result<GBIFData, Error> {
+    let reqwest = ReqwestClient::new();
+    let response = reqwest
+        .get("https://api.gbif.org/v2/species/match")
+        .query(&[("scientificName", species)])
+        .send()
+        .await?
+        .json::<GBIFResponse>()
+        .await?;
+
+    if let Some(gbif_usage) = response.usage {
+        return Ok(GBIFData {
+            usage_key: gbif_usage.key,
+        });
+    }
+
+    return Err(Error::Custom(
+        format!("No GBIF results found for {species}").into(),
+    ));
 }
 
 fn get_moth_rank_vec(input_strings: &[Option<String>]) -> Vec<String> {
