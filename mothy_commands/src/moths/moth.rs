@@ -321,6 +321,7 @@ fn get_pagination_buttons<'a>(
 }
 
 async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {
+    let reqwest_client = ReqwestClient::new();
     let classifications = moth.classification.clone();
 
     let title = format!(
@@ -373,7 +374,8 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
 
     let mut more_info_field_urls: Vec<String> = Vec::new();
 
-    let inaturalist_data_result = try_get_inaturalist_data(&species_formatted).await;
+    let inaturalist_data_result =
+        try_get_inaturalist_data(&reqwest_client, &species_formatted).await;
     if let Ok(inaturalist_data) = &inaturalist_data_result {
         // the iNaturalist ID will always be present but don't bother linking photos if there are none
         if inaturalist_data.photo_url.is_some() {
@@ -392,7 +394,7 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
         Err(_err) => "".to_string(),
     };
 
-    if let Ok(gbif_data) = try_get_gbif_data(&species_formatted).await {
+    if let Ok(gbif_data) = try_get_gbif_data(&reqwest_client, &species_formatted).await {
         more_info_field_urls.push(format!("[GBIF]({GBIF_SPECIES_URL}{})", gbif_data.usage_key));
     }
 
@@ -439,8 +441,10 @@ struct INaturalistData {
 }
 
 // https://api.inaturalist.org/v1/docs/#!/Search/get_search
-async fn try_get_inaturalist_data(species: &str) -> Result<INaturalistData, Error> {
-    let reqwest = ReqwestClient::new();
+async fn try_get_inaturalist_data(
+    reqwest: &ReqwestClient,
+    species: &str,
+) -> Result<INaturalistData, Error> {
     let response = reqwest
         .get("https://api.inaturalist.org/v1/search")
         .query(&[
@@ -489,8 +493,7 @@ struct GBIFData {
 }
 
 // https://techdocs.gbif.org/en/openapi/v1/species#/
-async fn try_get_gbif_data(species: &str) -> Result<GBIFData, Error> {
-    let reqwest = ReqwestClient::new();
+async fn try_get_gbif_data(reqwest: &ReqwestClient, species: &str) -> Result<GBIFData, Error> {
     let response = reqwest
         .get("https://api.gbif.org/v2/species/match")
         .query(&[("scientificName", species)])
