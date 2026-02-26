@@ -1693,6 +1693,7 @@ dependencies = [
  "serde_json",
  "serenity",
  "to-arraystring",
+ "tokio",
 ]
 
 [[package]]
