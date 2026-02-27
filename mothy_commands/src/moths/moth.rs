@@ -15,7 +15,6 @@ use reqwest::Client as ReqwestClient;
 
 const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/taxon/";
 const GBIF_SPECIES_URL: &str = "https://www.gbif.org/species/";
-const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
 
 const MOTHS_PER_PAGE: usize = 10;
 const MOTH_SEARCH_INTERACTION_TIMEOUT: u64 = 300; // interaction tokens are only valid for 15 minutes max, this should never exceed `900` (realistically a bit lower to have a bit of safety buffer)
@@ -76,9 +75,16 @@ pub async fn moth_search(
         .expect("moth_search command response defer fail, this shouldn't happen");
 
     // ugly lepidoptera searching is not allowed (butteryflies)
-    if let Some(superfamily_some) = &superfamily
-        && superfamily_some.to_lowercase() == BUTTERFLY_SUPERFAMILY.to_lowercase()
-    {
+    if is_butterfly(
+        &ctx.data().butterfly_blacklist,
+        &superfamily,
+        &family,
+        &subfamily,
+        &tribe,
+        &subtribe,
+        &genus,
+        &epithet,
+    ) {
         let embed = serenity::CreateEmbed::default()
             .description("Attempted butterfly search detected. This incident will be reported.")
             .color(serenity::Colour::from_rgb(255, 0, 0));

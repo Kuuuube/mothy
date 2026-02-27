@@ -1,3 +1,7 @@
+use moth_filter::ButterflyBlacklist;
+
+const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
+
 pub fn get_moth_rank_vec(input_strings: &[Option<String>]) -> Vec<String> {
     let mut ranks_vec = Vec::new();
     for input_string in input_strings {
@@ -23,4 +27,58 @@ pub fn search_classification_valid<A: AsRef<str>, B: AsRef<str>>(
             .unwrap_or(false); // search requested on classification but moth doesnt contain classification = invalid (`false`)
     }
     return true; // no search requested (`search_input` == None)
+}
+
+pub fn is_butterfly(
+    butterfly_blacklist: &ButterflyBlacklist,
+    superfamily: &Option<String>,
+    family: &Option<String>,
+    subfamily: &Option<String>,
+    tribe: &Option<String>,
+    subtribe: &Option<String>,
+    genus: &Option<String>,
+    epithet: &Option<String>,
+) -> bool {
+    if search_classification_valid(superfamily, &Some(BUTTERFLY_SUPERFAMILY)) {
+        return true;
+    }
+    if let Some(family) = family
+        && butterfly_blacklist
+            .families
+            .contains(&family.to_lowercase())
+    {
+        return true;
+    }
+    if let Some(subfamily) = subfamily
+        && butterfly_blacklist
+            .subfamilies
+            .contains(&subfamily.to_lowercase())
+    {
+        return true;
+    }
+    if let Some(tribe) = tribe
+        && butterfly_blacklist.tribes.contains(&tribe.to_lowercase())
+    {
+        return true;
+    }
+    if let Some(subtribe) = subtribe
+        && butterfly_blacklist
+            .subtribes
+            .contains(&subtribe.to_lowercase())
+    {
+        return true;
+    }
+    if let Some(genus) = genus
+        && butterfly_blacklist.genera.contains(&genus.to_lowercase())
+    {
+        return true;
+    }
+    if let Some(epithet) = epithet
+        && butterfly_blacklist
+            .epithets
+            .contains(&epithet.to_lowercase())
+    {
+        return true;
+    }
+    return false;
 }
