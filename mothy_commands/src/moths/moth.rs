@@ -5,9 +5,7 @@ use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
 use ::serenity::{
-    all::{
-        ComponentInteractionCollector, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,
-    },
+    all::{ComponentInteractionCollector, CreateEmbed, CreateEmbedFooter},
     futures::StreamExt,
 };
 use rand::seq::IndexedRandom;
