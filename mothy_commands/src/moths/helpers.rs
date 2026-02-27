@@ -39,7 +39,9 @@ pub fn is_butterfly(
     genus: &Option<String>,
     epithet: &Option<String>,
 ) -> bool {
-    if search_classification_valid(superfamily, &Some(BUTTERFLY_SUPERFAMILY)) {
+    if let Some(superfamily) = superfamily
+        && superfamily == BUTTERFLY_SUPERFAMILY
+    {
         return true;
     }
     if let Some(family) = family
