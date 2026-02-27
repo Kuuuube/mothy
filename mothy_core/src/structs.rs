@@ -16,6 +16,7 @@ pub struct Data {
     pub config: MothyConfig,
     pub command_data: CommandData,
     pub moth_data: moth_filter::MothDataJson,
+    pub butterfly_blacklist: moth_filter::ButterflyBlacklist,
 }
 
 pub struct CommandData {
