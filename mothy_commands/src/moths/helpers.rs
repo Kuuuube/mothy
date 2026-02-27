@@ -84,3 +84,18 @@ pub fn is_butterfly(
     }
     return false;
 }
+
+#[test]
+fn test_is_butterfly() {
+    let butterfly_blacklist = mothy_core::moth_data::butterfly_blacklist_init().unwrap();
+    // full database search
+    assert!(is_butterfly(&butterfly_blacklist, &None, &None, &None, &None, &None, &None, &None) == false);
+    // moths
+    assert!(is_butterfly(&butterfly_blacklist, &None, &None, &None, &None, &None, &Some("Urapteroides".to_string()), &Some("astheniata".to_string())) == false);
+    assert!(is_butterfly(&butterfly_blacklist, &None, &Some("Saturniidae".to_string()), &None, &None, &None, &None, &None) == false);
+    // butterflies
+    assert!(is_butterfly(&butterfly_blacklist, &Some(BUTTERFLY_SUPERFAMILY.to_string()), &None, &None, &None, &None, &None, &None) == true);
+    assert!(is_butterfly(&butterfly_blacklist, &None, &None, &None, &None, &None, &Some("Danaus".to_string()), &Some("plexippus".to_string())) == true);
+    assert!(is_butterfly(&butterfly_blacklist, &None, &Some("Hesperiidae".to_string()), &None, &None, &None, &None, &None) == true);
+    assert!(is_butterfly(&butterfly_blacklist, &None, &Some("Lycaenidae".to_string()), &None, &None, &None, &None, &None) == true);
+}
