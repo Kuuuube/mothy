@@ -218,12 +218,6 @@ pub async fn moth_search(
                     .components(&[get_pagination_buttons(page_number, pagecount)]),
             )
             .await?;
-        interaction
-            .create_response(
-                &ctx.serenity_context().http,
-                CreateInteractionResponse::Acknowledge,
-            )
-            .await?;
     }
 
     // edit out buttons after timeout
