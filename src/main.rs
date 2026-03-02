@@ -53,7 +53,6 @@ async fn main() {
             config: mothy_core::structs::MothyConfig::new(),
             command_data: mothy_commands::init_data(),
             moth_data: moth_data::moth_data_init().unwrap_or_default(),
-            butterfly_blacklist: moth_data::butterfly_blacklist_init().unwrap_or_default(),
         }))
         .await;
 

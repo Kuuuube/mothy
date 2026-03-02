@@ -87,7 +87,9 @@ pub fn is_butterfly(
 
 #[test]
 fn test_is_butterfly() {
-    let butterfly_blacklist = mothy_core::moth_data::butterfly_blacklist_init().unwrap();
+    let butterfly_blacklist = mothy_core::moth_data::moth_data_init()
+        .unwrap()
+        .butterfly_blacklist;
     // full database search
     assert!(
         is_butterfly(

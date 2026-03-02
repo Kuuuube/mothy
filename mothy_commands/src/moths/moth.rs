@@ -39,7 +39,7 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     let data = ctx.data();
     let moth = {
         let mut rng = rand::rng();
-        data.moth_data.choose(&mut rng).unwrap()
+        data.moth_data.moth_data.choose(&mut rng).unwrap()
     };
     let embed = assemble_moth_embed(moth).await;
     ctx.send(poise::CreateReply::default().embed(embed)).await?;
@@ -72,9 +72,12 @@ pub async fn moth_search(
         .await
         .expect("moth_search command response defer fail, this shouldn't happen");
 
+    let moth_data = &ctx.data().moth_data.moth_data;
+    let butterfly_blacklist = &ctx.data().moth_data.butterfly_blacklist;
+
     // ugly lepidoptera searching is not allowed (butteryflies)
     if is_butterfly(
-        &ctx.data().butterfly_blacklist,
+        butterfly_blacklist,
         &superfamily,
         &family,
         &subfamily,
@@ -90,17 +93,15 @@ pub async fn moth_search(
         return Ok(());
     }
 
-    let data = ctx.data();
-
     // specific species search
     if let Some(genus_some) = &genus
         && let Some(epithet_some) = &epithet
     {
-        if let Some(found_moth) = &data.moth_data.iter().find(|moth| {
+        if let Some(found_moth) = moth_data.iter().find(|moth| {
             moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
                 && moth.classification.epithet.to_lowercase() == epithet_some.to_lowercase()
         }) {
-            let embed = assemble_moth_embed(*found_moth).await;
+            let embed = assemble_moth_embed(found_moth).await;
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         } else {
             let mut uppercase_genus = genus_some.clone();
@@ -118,8 +119,7 @@ pub async fn moth_search(
     }
 
     // wide search
-    let mut moths_found: Vec<&SpeciesData> = data
-        .moth_data
+    let mut moths_found: Vec<&SpeciesData> = moth_data
         .iter()
         .filter(|moth| {
             if !search_classification_valid(&superfamily, &moth.classification.superfamily)

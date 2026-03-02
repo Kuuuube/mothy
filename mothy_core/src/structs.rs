@@ -15,6 +15,11 @@ pub struct Data {
     pub regex_filters: RegexFilters,
     pub config: MothyConfig,
     pub command_data: CommandData,
+    pub moth_data: MothData,
+}
+
+#[derive(Debug, Default)]
+pub struct MothData {
     pub moth_data: moth_filter::MothDataJson,
     pub butterfly_blacklist: moth_filter::ButterflyBlacklist,
 }
