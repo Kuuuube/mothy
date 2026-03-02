@@ -2,3 +2,4 @@
 .env
 assets/moth_data.json.zst
 assets/butterfly_blacklist.json.zst
+assets/moth_synonyms.json.zst
