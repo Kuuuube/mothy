@@ -21,6 +21,7 @@ pub struct Data {
 #[derive(Debug, Default)]
 pub struct MothData {
     pub moth_data: moth_filter::MothDataJson,
+    pub moth_synonyms: moth_filter::MothSynonyms,
     pub butterfly_blacklist: moth_filter::ButterflyBlacklist,
 }
 

@@ -73,6 +73,7 @@ pub async fn moth_search(
         .expect("moth_search command response defer fail, this shouldn't happen");
 
     let moth_data = &ctx.data().moth_data.moth_data;
+    let moth_synonyms = &ctx.data().moth_data.moth_synonyms;
     let butterfly_blacklist = &ctx.data().moth_data.butterfly_blacklist;
 
     // ugly lepidoptera searching is not allowed (butteryflies)
@@ -97,10 +98,23 @@ pub async fn moth_search(
     if let Some(genus_some) = &genus
         && let Some(epithet_some) = &epithet
     {
-        if let Some(found_moth) = moth_data.iter().find(|moth| {
-            moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
-                && moth.classification.epithet.to_lowercase() == epithet_some.to_lowercase()
-        }) {
+        let found_synonym_id = moth_synonyms.get(&format!(
+            "{} {}",
+            genus_some.to_lowercase(),
+            epithet_some.to_lowercase()
+        ));
+        let found_moth = if let Some(found_synonym_id) = found_synonym_id {
+            moth_data
+                .iter()
+                .find(|moth| &moth.catalogue_of_life_taxon_id == found_synonym_id)
+        } else {
+            moth_data.iter().find(|moth| {
+                moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
+                    && moth.classification.epithet.to_lowercase() == epithet_some.to_lowercase()
+            })
+        };
+
+        if let Some(found_moth) = found_moth {
             let embed = assemble_moth_embed(found_moth).await;
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         } else {
