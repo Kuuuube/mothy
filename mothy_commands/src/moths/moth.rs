@@ -321,15 +321,24 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
         .unwrap();
     let classifications = moth.classification.clone();
 
-    let title = format!(
+    let species_formatted = format!(
         "{} {}",
         moth.classification.genus, moth.classification.epithet
     );
+
+    let (inaturalist_data_result, gbif_data_result) = tokio::join!(
+        try_get_inaturalist_data(&reqwest_client, &species_formatted),
+        try_get_gbif_data(&reqwest_client, &species_formatted),
+    );
+
+    let title = species_formatted;
 
     let mut fields = vec![];
 
     if let Some(common_names) = &moth.common_names {
         fields.push(("Common Names", common_names.join(", "), false));
+    } else if let Ok(ref inaturalist_data) = inaturalist_data_result && let Some(common_name) = &inaturalist_data.preferred_common_name {
+        fields.push(("Common Names", common_name.to_string(), false));
     }
 
     let moth_rank_flow = [
@@ -364,17 +373,7 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
         fields.push(("Published In", published_in.to_string(), false));
     }
 
-    let species_formatted = format!(
-        "{} {}",
-        moth.classification.genus, moth.classification.epithet
-    );
-
     let mut more_info_field_urls: Vec<String> = Vec::new();
-
-    let (inaturalist_data_result, gbif_data_result) = tokio::join!(
-        try_get_inaturalist_data(&reqwest_client, &species_formatted),
-        try_get_gbif_data(&reqwest_client, &species_formatted),
-    );
 
     if let Ok(inaturalist_data) = &inaturalist_data_result {
         // the iNaturalist ID will always be present but don't bother linking photos if there are none

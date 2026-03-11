@@ -16,6 +16,7 @@ struct INaturalistResponsePhoto {
     id: i128,
     default_photo: Option<INaturalistResponseDefaultPhoto>,
     wikipedia_url: Option<String>,
+    preferred_common_name: Option<String>,
 }
 #[derive(Debug, Deserialize)]
 struct INaturalistResponseDefaultPhoto {
@@ -26,6 +27,7 @@ pub struct INaturalistData {
     pub inaturalist_url: String,
     pub photo_url: Option<String>,
     pub wikipedia_url: Option<String>,
+    pub preferred_common_name: Option<String>,
 }
 
 // https://api.inaturalist.org/v1/docs/#!/Search/get_search
@@ -58,6 +60,7 @@ pub async fn try_get_inaturalist_data(
                 .as_ref()
                 .map(|x| x.medium_url.clone()),
             wikipedia_url: first_result.record.wikipedia_url.clone(),
+            preferred_common_name: first_result.record.preferred_common_name.clone(),
         });
     }
     return Err(Error::Custom(
