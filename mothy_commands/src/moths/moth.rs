@@ -65,7 +65,7 @@ pub async fn moth_search(
     tribe: Option<String>,
     subtribe: Option<String>,
     genus: Option<String>,
-    epithet: Option<String>,
+    specific: Option<String>,
 ) -> Result<(), Error> {
     // this command's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
     ctx.defer()
@@ -85,7 +85,7 @@ pub async fn moth_search(
         &tribe,
         &subtribe,
         &genus,
-        &epithet,
+        &specific,
     ) {
         let embed = serenity::CreateEmbed::default()
             .description("Attempted butterfly search detected. This incident will be reported.")
@@ -96,12 +96,12 @@ pub async fn moth_search(
 
     // specific species search
     if let Some(genus_some) = &genus
-        && let Some(epithet_some) = &epithet
+        && let Some(specific_some) = &specific
     {
         let found_synonym_id = moth_synonyms.get(&format!(
             "{} {}",
             genus_some.to_lowercase(),
-            epithet_some.to_lowercase()
+            specific_some.to_lowercase()
         ));
         let found_moth = if let Some(found_synonym_id) = found_synonym_id {
             moth_data
@@ -110,7 +110,7 @@ pub async fn moth_search(
         } else {
             moth_data.iter().find(|moth| {
                 moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
-                    && moth.classification.epithet.to_lowercase() == epithet_some.to_lowercase()
+                    && moth.classification.specific.to_lowercase() == specific_some.to_lowercase()
             })
         };
 
@@ -125,7 +125,7 @@ pub async fn moth_search(
             let embed = serenity::CreateEmbed::default().description(format!(
                 "Failed to find moth `{} {}`.",
                 uppercase_genus,
-                epithet_some.to_lowercase()
+                specific_some.to_lowercase()
             ));
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         }
@@ -142,7 +142,7 @@ pub async fn moth_search(
                 || !search_classification_valid(&tribe, &moth.classification.tribe)
                 || !search_classification_valid(&subtribe, &moth.classification.subtribe)
                 || !search_classification_valid(&genus, &Some(&moth.classification.genus))
-                || !search_classification_valid(&epithet, &Some(&moth.classification.epithet))
+                || !search_classification_valid(&specific, &Some(&moth.classification.specific))
             {
                 return false;
             }
@@ -159,9 +159,9 @@ pub async fn moth_search(
     }
 
     moths_found.sort_by(|a, b| {
-        format!("{} {}", a.classification.genus, a.classification.epithet).cmp(&format!(
+        format!("{} {}", a.classification.genus, a.classification.specific).cmp(&format!(
             "{} {}",
-            b.classification.genus, b.classification.epithet
+            b.classification.genus, b.classification.specific
         ))
     });
 
@@ -280,7 +280,7 @@ fn assemble_paginated_moth_search_embed<'a>(
             format!(
                 "[{} {}]({}{})",
                 x.classification.genus.clone(),
-                x.classification.epithet.clone(),
+                x.classification.specific.clone(),
                 CATALOGUE_OF_LIFE_TAXON_URL,
                 x.catalogue_of_life_taxon_id
             )
@@ -323,7 +323,7 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
 
     let species_formatted = format!(
         "{} {}",
-        moth.classification.genus, moth.classification.epithet
+        moth.classification.genus, moth.classification.specific
     );
 
     let (inaturalist_data_result, gbif_data_result) = tokio::join!(
@@ -349,7 +349,7 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
             classifications.tribe,
             classifications.subtribe,
         ]),
-        vec![classifications.genus, classifications.epithet],
+        vec![classifications.genus, classifications.specific],
     ]
     .concat()
     .join(" -> ");
@@ -361,7 +361,7 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
             .map(|x| {
                 format!(
                     "[{} {}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
-                    x.genus, x.epithet, x.catalogue_of_life_taxon_id
+                    x.genus, x.specific, x.catalogue_of_life_taxon_id
                 )
             })
             .collect::<Vec<String>>()

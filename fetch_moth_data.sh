@@ -1,4 +1,4 @@
 dir_path="$(dirname "$0")"
-wget https://github.com/Kuuuube/moth_filter/releases/download/v0.0.4/moth_data.json.zst -O "$dir_path/assets/moth_data.json.zst"
-wget https://github.com/Kuuuube/moth_filter/releases/download/v0.0.4/butterfly_blacklist.json.zst -O "$dir_path/assets/butterfly_blacklist.json.zst"
-wget https://github.com/Kuuuube/moth_filter/releases/download/v0.0.4/moth_synonyms.json.zst -O "$dir_path/assets/moth_synonyms.json.zst"
+wget https://github.com/Kuuuube/moth_filter/releases/download/v0.1.0/moth_data.json.zst -O "$dir_path/assets/moth_data.json.zst"
+wget https://github.com/Kuuuube/moth_filter/releases/download/v0.1.0/butterfly_blacklist.json.zst -O "$dir_path/assets/butterfly_blacklist.json.zst"
+wget https://github.com/Kuuuube/moth_filter/releases/download/v0.1.0/moth_synonyms.json.zst -O "$dir_path/assets/moth_synonyms.json.zst"

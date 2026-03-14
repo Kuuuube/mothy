@@ -37,7 +37,7 @@ pub fn is_butterfly(
     tribe: &Option<String>,
     subtribe: &Option<String>,
     genus: &Option<String>,
-    epithet: &Option<String>,
+    specific: &Option<String>,
 ) -> bool {
     if let Some(superfamily) = superfamily
         && superfamily == BUTTERFLY_SUPERFAMILY
@@ -75,10 +75,10 @@ pub fn is_butterfly(
     {
         return true;
     }
-    if let Some(epithet) = epithet
+    if let Some(specific) = specific
         && butterfly_blacklist
-            .epithets
-            .contains(&epithet.to_lowercase())
+            .specifics
+            .contains(&specific.to_lowercase())
     {
         return true;
     }

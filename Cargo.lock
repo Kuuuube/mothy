@@ -1653,7 +1653,7 @@ dependencies = [
 [[package]]
 name = "moth_filter"
 version = "0.1.0"
-source = "git+https://github.com/Kuuuube/moth_filter#daa18da482ab282d7b9dc6ad294fc9df87fdbc82"
+source = "git+https://github.com/Kuuuube/moth_filter#385c598c5cc0d3b76782159fe0b429e7c1877962"
 dependencies = [
  "serde",
 ]
