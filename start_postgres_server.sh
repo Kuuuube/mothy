@@ -10,4 +10,4 @@ echo $ pg_ctl -D /var/lib/postgres/data -l logfile start
 echo $ exit
 echo \`\`\`
 echo
-sudo -u postgres pg_ctl -D /var/lib/postgres/data -l logfile start
+sudo -u postgres pg_ctl -D /var/lib/postgres/data start
