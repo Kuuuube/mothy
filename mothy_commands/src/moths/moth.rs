@@ -369,6 +369,20 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
         fields.push(("Synonyms", synonyms_formatted, false));
     }
 
+    if let Some(subspecies) = &moth.subspecies {
+        let subspecies_formatted = subspecies
+            .iter()
+            .map(|x| {
+                format!(
+                    "[{} {} {}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
+                    x.genus, x.specific, x.subspecific, x.catalogue_of_life_taxon_id
+                )
+            })
+            .collect::<Vec<String>>()
+            .join(", ");
+        fields.push(("Subspecies", subspecies_formatted, false));
+    }
+
     if let Some(published_in) = &moth.published_in {
         fields.push(("Published In", published_in.to_string(), false));
     }
