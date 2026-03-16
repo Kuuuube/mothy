@@ -282,9 +282,12 @@ fn assemble_paginated_moth_search_embed<'a>(
         .iter()
         .map(|x| {
             format!(
-                "[{} {}]({}{})",
-                x.classification.genus.clone(),
-                x.classification.specific.clone(),
+                "[{}]({}{})",
+                assemble_scientific_name(
+                    &x.classification.genus,
+                    &x.classification.specific,
+                    x.classification.subspecific.as_deref()
+                ),
                 CATALOGUE_OF_LIFE_TAXON_URL,
                 x.catalogue_of_life_taxon_id
             )
