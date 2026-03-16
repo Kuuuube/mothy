@@ -366,8 +366,9 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
             .iter()
             .map(|x| {
                 format!(
-                    "[{} {}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
-                    x.genus, x.specific, x.catalogue_of_life_taxon_id
+                    "[{}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
+                    assemble_scientific_name(&x.genus, &x.specific, x.subspecific.as_deref()),
+                    x.catalogue_of_life_taxon_id
                 )
             })
             .collect::<Vec<String>>()
