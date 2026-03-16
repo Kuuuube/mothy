@@ -163,9 +163,17 @@ pub async fn moth_search(
     }
 
     moths_found.sort_by(|a, b| {
-        format!("{} {}", a.classification.genus, a.classification.specific).cmp(&format!(
-            "{} {}",
-            b.classification.genus, b.classification.specific
+        format!(
+            "{} {} {}",
+            a.classification.genus,
+            a.classification.specific,
+            a.classification.subspecific.as_deref().unwrap_or_default()
+        )
+        .cmp(&format!(
+            "{} {} {}",
+            b.classification.genus,
+            b.classification.specific,
+            a.classification.subspecific.as_deref().unwrap_or_default()
         ))
     });
 
