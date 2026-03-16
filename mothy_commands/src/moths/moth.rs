@@ -41,7 +41,7 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
         let mut rng = rand::rng();
         data.moth_data.moth_data.choose(&mut rng).unwrap()
     };
-    let embed = assemble_moth_embed(moth).await;
+    let embed = assemble_moth_embed(moth, None).await;
     ctx.send(poise::CreateReply::default().embed(embed)).await?;
 
     Ok(())
@@ -142,7 +142,7 @@ pub async fn moth_search(
         };
 
         if let Some(found_moth) = found_moth {
-            let embed = assemble_moth_embed(found_moth).await;
+            let embed = assemble_moth_embed(found_moth, found_subspecies.cloned()).await;
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         } else {
             let mut capitalized_scientific_name = lowercase_scientific_name;
@@ -339,17 +339,27 @@ fn get_pagination_buttons<'a>(
     ));
 }
 
-async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {
+async fn assemble_moth_embed(
+    moth: &moth_filter::SpeciesData,
+    subspecies: Option<moth_filter::SubSpecies>,
+) -> CreateEmbed<'_> {
     let reqwest_client = ReqwestClient::builder()
         .timeout(Duration::from_secs(60))
         .build()
         .unwrap();
     let classifications = moth.classification.clone();
 
-    let species_formatted = format!(
-        "{} {}",
-        moth.classification.genus, moth.classification.specific
-    );
+    let species_formatted = if let Some(subspecies_some) = subspecies {
+        format!(
+            "{} {} {}",
+            moth.classification.genus, moth.classification.specific, subspecies_some.subspecific
+        )
+    } else {
+        format!(
+            "{} {}",
+            moth.classification.genus, moth.classification.specific
+        )
+    };
 
     let (inaturalist_data_result, gbif_data_result) = tokio::join!(
         try_get_inaturalist_data(&reqwest_client, &species_formatted),
