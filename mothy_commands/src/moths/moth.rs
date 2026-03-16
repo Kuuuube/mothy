@@ -99,20 +99,14 @@ pub async fn moth_search(
     if let Some(genus_some) = &genus
         && let Some(specific_some) = &specific
     {
-        let lowercase_scientific_name = if let Some(subspecific_some) = &subspecific {
-            format!(
-                "{} {} {}",
-                genus_some.to_lowercase(),
-                specific_some.to_lowercase(),
-                subspecific_some.to_lowercase()
-            )
-        } else {
-            format!(
-                "{} {}",
-                genus_some.to_lowercase(),
-                specific_some.to_lowercase()
-            )
-        };
+        let lowercase_scientific_name = format!(
+            "{} {} {}",
+            genus_some.to_lowercase(),
+            specific_some.to_lowercase(),
+            subspecific.clone().unwrap_or_default().to_lowercase()
+        )
+        .trim()
+        .to_string();
         let found_synonym_id = moth_synonyms.get(&lowercase_scientific_name);
         let mut found_subspecies = None;
         let found_moth = if let Some(found_synonym_id) = found_synonym_id {
