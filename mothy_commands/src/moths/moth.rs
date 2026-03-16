@@ -105,6 +105,7 @@ pub async fn moth_search(
             &specific_some.to_lowercase(),
             subspecific.as_deref(),
         );
+        let mut possible_subspecific_as_specific = Vec::new();
         let found_synonym_id = moth_synonyms.get(&lowercase_scientific_name);
         let found_moth = if let Some(found_synonym_id) = found_synonym_id {
             moth_data
@@ -112,10 +113,28 @@ pub async fn moth_search(
                 .find(|moth| &moth.catalogue_of_life_taxon_id == found_synonym_id)
         } else {
             moth_data.iter().find(|moth| {
-                moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
-                    && moth.classification.specific.to_lowercase() == specific_some.to_lowercase()
+                if !(moth.classification.genus.to_lowercase() == genus_some.to_lowercase()) {
+                    return false;
+                }
+                if moth.classification.specific.to_lowercase() == specific_some.to_lowercase()
                     && moth.classification.subspecific
                         == subspecific.as_ref().map(|x| x.to_lowercase())
+                {
+                    return true;
+                }
+
+                // sometimes subspecies can be abbreviated to `Genus subspecific` rather than `Genus specific subspecific`
+                // this can make it appear as if `Genus specific` has been written rather than a subspecies identifier
+                // check if user's input `specific` matches moth's `subspecific`
+                if let Some(moth_subspecific) = &moth.classification.subspecific
+                    && moth_subspecific.to_lowercase() == specific_some.to_lowercase()
+                {
+                    possible_subspecific_as_specific.push(format!(
+                        "{} {} {}",
+                        moth.classification.genus, moth.classification.specific, moth_subspecific
+                    ));
+                }
+                return false;
             })
         };
 
@@ -127,9 +146,19 @@ pub async fn moth_search(
             capitalized_scientific_name
                 .get_mut(0..1)
                 .and_then(|x| Some(x.make_ascii_uppercase()));
-            let embed = serenity::CreateEmbed::default().description(format!(
-                "Failed to find moth `{capitalized_scientific_name}`."
-            ));
+
+            let mut embed_text = format!("Failed to find moth `{capitalized_scientific_name}`.");
+            if possible_subspecific_as_specific.len() > 0 {
+                let formatted_subspecific_as_specific = possible_subspecific_as_specific
+                    .iter()
+                    .map(|x| format!("`{x}`"))
+                    .collect::<Vec<String>>()
+                    .join("\n");
+                embed_text = format!(
+                    "{embed_text}\nFound similarly named subspecies:\n{formatted_subspecific_as_specific}"
+                );
+            }
+            let embed = serenity::CreateEmbed::default().description(embed_text);
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         }
         return Ok(());
