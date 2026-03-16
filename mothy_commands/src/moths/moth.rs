@@ -41,7 +41,7 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
         let mut rng = rand::rng();
         data.moth_data.moth_data.choose(&mut rng).unwrap()
     };
-    let embed = assemble_moth_embed(moth, None).await;
+    let embed = assemble_moth_embed(moth).await;
     ctx.send(poise::CreateReply::default().embed(embed)).await?;
 
     Ok(())
@@ -108,35 +108,21 @@ pub async fn moth_search(
         .trim()
         .to_string();
         let found_synonym_id = moth_synonyms.get(&lowercase_scientific_name);
-        let mut found_subspecies = None;
         let found_moth = if let Some(found_synonym_id) = found_synonym_id {
             moth_data
                 .iter()
                 .find(|moth| &moth.catalogue_of_life_taxon_id == found_synonym_id)
-        } else if let Some(subspecific_some) = &subspecific {
-            moth_data.iter().find(|moth| {
-                if let Some(subspecies_vec) = &moth.subspecies {
-                    if moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
-                        && moth.classification.specific.to_lowercase()
-                            == specific_some.to_lowercase()
-                    {
-                        found_subspecies = subspecies_vec.iter().find(|subspecies| {
-                            subspecies.subspecific.to_lowercase() == subspecific_some.to_lowercase()
-                        });
-                        return found_subspecies.is_some();
-                    }
-                }
-                false
-            })
         } else {
             moth_data.iter().find(|moth| {
                 moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
                     && moth.classification.specific.to_lowercase() == specific_some.to_lowercase()
+                    && moth.classification.subspecific
+                        == subspecific.as_ref().map(|x| x.to_lowercase())
             })
         };
 
         if let Some(found_moth) = found_moth {
-            let embed = assemble_moth_embed(found_moth, found_subspecies.cloned()).await;
+            let embed = assemble_moth_embed(found_moth).await;
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         } else {
             let mut capitalized_scientific_name = lowercase_scientific_name;
@@ -162,6 +148,7 @@ pub async fn moth_search(
                 || !search_classification_valid(&subtribe, &moth.classification.subtribe)
                 || !search_classification_valid(&genus, &Some(&moth.classification.genus))
                 || !search_classification_valid(&specific, &Some(&moth.classification.specific))
+                || !search_classification_valid(&subspecific, &moth.classification.subspecific)
             {
                 return false;
             }
@@ -333,27 +320,21 @@ fn get_pagination_buttons<'a>(
     ));
 }
 
-async fn assemble_moth_embed(
-    moth: &moth_filter::SpeciesData,
-    subspecies: Option<moth_filter::SubSpecies>,
-) -> CreateEmbed<'_> {
+async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {
     let reqwest_client = ReqwestClient::builder()
         .timeout(Duration::from_secs(60))
         .build()
         .unwrap();
     let classifications = moth.classification.clone();
 
-    let species_formatted = if let Some(subspecies_some) = subspecies {
-        format!(
-            "{} {} {}",
-            moth.classification.genus, moth.classification.specific, subspecies_some.subspecific
-        )
-    } else {
-        format!(
-            "{} {}",
-            moth.classification.genus, moth.classification.specific
-        )
-    };
+    let species_formatted = format!(
+        "{} {} {}",
+        moth.classification.genus,
+        moth.classification.specific,
+        moth.classification.subspecific.clone().unwrap_or_default()
+    )
+    .trim()
+    .to_string();
 
     let (inaturalist_data_result, gbif_data_result) = tokio::join!(
         try_get_inaturalist_data(&reqwest_client, &species_formatted),
@@ -372,17 +353,16 @@ async fn assemble_moth_embed(
         fields.push(("Common Names", common_name.to_string(), false));
     }
 
-    let moth_rank_flow = [
-        get_moth_rank_vec(&[
-            classifications.superfamily,
-            classifications.family,
-            classifications.subfamily,
-            classifications.tribe,
-            classifications.subtribe,
-        ]),
-        vec![classifications.genus, classifications.specific],
-    ]
-    .concat()
+    let moth_rank_flow = get_moth_rank_vec(&[
+        classifications.superfamily,
+        classifications.family,
+        classifications.subfamily,
+        classifications.tribe,
+        classifications.subtribe,
+        Some(classifications.genus),
+        Some(classifications.specific),
+        classifications.subspecific,
+    ])
     .join(" -> ");
     fields.push(("Classification", moth_rank_flow, false));
 
