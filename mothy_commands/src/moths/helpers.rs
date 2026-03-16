@@ -38,6 +38,7 @@ pub fn is_butterfly(
     subtribe: &Option<String>,
     genus: &Option<String>,
     specific: &Option<String>,
+    subspecific: &Option<String>,
 ) -> bool {
     if let Some(superfamily) = superfamily
         && superfamily == BUTTERFLY_SUPERFAMILY
@@ -82,6 +83,13 @@ pub fn is_butterfly(
     {
         return true;
     }
+    if let Some(subspecific) = subspecific
+        && butterfly_blacklist
+            .subspecifics
+            .contains(&subspecific.to_lowercase())
+    {
+        return true;
+    }
     return false;
 }
 
@@ -94,6 +102,7 @@ fn test_is_butterfly() {
     assert!(
         is_butterfly(
             &butterfly_blacklist,
+            &None,
             &None,
             &None,
             &None,
@@ -113,7 +122,8 @@ fn test_is_butterfly() {
             &None,
             &None,
             &Some("Urapteroides".to_string()),
-            &Some("astheniata".to_string())
+            &Some("astheniata".to_string()),
+            &None
         ) == false
     );
     assert!(
@@ -121,6 +131,7 @@ fn test_is_butterfly() {
             &butterfly_blacklist,
             &None,
             &Some("Saturniidae".to_string()),
+            &None,
             &None,
             &None,
             &None,
@@ -138,6 +149,7 @@ fn test_is_butterfly() {
             &None,
             &None,
             &None,
+            &None,
             &None
         ) == true
     );
@@ -150,7 +162,8 @@ fn test_is_butterfly() {
             &None,
             &None,
             &Some("Danaus".to_string()),
-            &Some("plexippus".to_string())
+            &Some("plexippus".to_string()),
+            &None
         ) == true
     );
     assert!(
@@ -158,6 +171,7 @@ fn test_is_butterfly() {
             &butterfly_blacklist,
             &None,
             &Some("Hesperiidae".to_string()),
+            &None,
             &None,
             &None,
             &None,
@@ -170,6 +184,7 @@ fn test_is_butterfly() {
             &butterfly_blacklist,
             &None,
             &Some("Lycaenidae".to_string()),
+            &None,
             &None,
             &None,
             &None,

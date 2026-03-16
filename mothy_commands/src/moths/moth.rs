@@ -87,6 +87,7 @@ pub async fn moth_search(
         &subtribe,
         &genus,
         &specific,
+        &subspecific,
     ) {
         let embed = serenity::CreateEmbed::default()
             .description("Attempted butterfly search detected. This incident will be reported.")
