@@ -66,6 +66,7 @@ pub async fn moth_search(
     subtribe: Option<String>,
     genus: Option<String>,
     specific: Option<String>,
+    subspecific: Option<String>,
 ) -> Result<(), Error> {
     // this command's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
     ctx.defer()
@@ -98,11 +99,21 @@ pub async fn moth_search(
     if let Some(genus_some) = &genus
         && let Some(specific_some) = &specific
     {
-        let found_synonym_id = moth_synonyms.get(&format!(
-            "{} {}",
-            genus_some.to_lowercase(),
-            specific_some.to_lowercase()
-        ));
+        let lowercase_scientific_name = if let Some(subspecific_some) = &subspecific {
+            format!(
+                "{} {} {}",
+                genus_some.to_lowercase(),
+                specific_some.to_lowercase(),
+                subspecific_some.to_lowercase()
+            )
+        } else {
+            format!(
+                "{} {}",
+                genus_some.to_lowercase(),
+                specific_some.to_lowercase()
+            )
+        };
+        let found_synonym_id = moth_synonyms.get(&lowercase_scientific_name);
         let found_moth = if let Some(found_synonym_id) = found_synonym_id {
             moth_data
                 .iter()
@@ -118,14 +129,12 @@ pub async fn moth_search(
             let embed = assemble_moth_embed(found_moth).await;
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         } else {
-            let mut uppercase_genus = genus_some.clone();
-            uppercase_genus
+            let mut capitalized_scientific_name = lowercase_scientific_name;
+            capitalized_scientific_name
                 .get_mut(0..1)
                 .and_then(|x| Some(x.make_ascii_uppercase()));
             let embed = serenity::CreateEmbed::default().description(format!(
-                "Failed to find moth `{} {}`.",
-                uppercase_genus,
-                specific_some.to_lowercase()
+                "Failed to find moth `{capitalized_scientific_name}`."
             ));
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         }
@@ -337,7 +346,9 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
 
     if let Some(common_names) = &moth.common_names {
         fields.push(("Common Names", common_names.join(", "), false));
-    } else if let Ok(ref inaturalist_data) = inaturalist_data_result && let Some(common_name) = &inaturalist_data.preferred_common_name {
+    } else if let Ok(ref inaturalist_data) = inaturalist_data_result
+        && let Some(common_name) = &inaturalist_data.preferred_common_name
+    {
         fields.push(("Common Names", common_name.to_string(), false));
     }
 
