@@ -114,10 +114,26 @@ pub async fn moth_search(
             )
         };
         let found_synonym_id = moth_synonyms.get(&lowercase_scientific_name);
+        let mut found_subspecies = None;
         let found_moth = if let Some(found_synonym_id) = found_synonym_id {
             moth_data
                 .iter()
                 .find(|moth| &moth.catalogue_of_life_taxon_id == found_synonym_id)
+        } else if let Some(subspecific_some) = &subspecific {
+            moth_data.iter().find(|moth| {
+                if let Some(subspecies_vec) = &moth.subspecies {
+                    if moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
+                        && moth.classification.specific.to_lowercase()
+                            == specific_some.to_lowercase()
+                    {
+                        found_subspecies = subspecies_vec.iter().find(|subspecies| {
+                            subspecies.subspecific.to_lowercase() == subspecific_some.to_lowercase()
+                        });
+                        return found_subspecies.is_some();
+                    }
+                }
+                false
+            })
         } else {
             moth_data.iter().find(|moth| {
                 moth.classification.genus.to_lowercase() == genus_some.to_lowercase()
