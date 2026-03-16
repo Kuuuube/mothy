@@ -100,14 +100,11 @@ pub async fn moth_search(
     if let Some(genus_some) = &genus
         && let Some(specific_some) = &specific
     {
-        let lowercase_scientific_name = format!(
-            "{} {} {}",
-            genus_some.to_lowercase(),
-            specific_some.to_lowercase(),
-            subspecific.clone().unwrap_or_default().to_lowercase()
-        )
-        .trim()
-        .to_string();
+        let lowercase_scientific_name = assemble_scientific_name(
+            &genus_some.to_lowercase(),
+            &specific_some.to_lowercase(),
+            subspecific.as_deref(),
+        );
         let found_synonym_id = moth_synonyms.get(&lowercase_scientific_name);
         let found_moth = if let Some(found_synonym_id) = found_synonym_id {
             moth_data
@@ -328,14 +325,11 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
         .unwrap();
     let classifications = moth.classification.clone();
 
-    let species_formatted = format!(
-        "{} {} {}",
-        moth.classification.genus,
-        moth.classification.specific,
-        moth.classification.subspecific.clone().unwrap_or_default()
-    )
-    .trim()
-    .to_string();
+    let species_formatted = assemble_scientific_name(
+        &moth.classification.genus,
+        &moth.classification.specific,
+        moth.classification.subspecific.as_deref(),
+    );
 
     let (inaturalist_data_result, gbif_data_result) = tokio::join!(
         try_get_inaturalist_data(&reqwest_client, &species_formatted),
@@ -386,8 +380,9 @@ async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_>
             .iter()
             .map(|x| {
                 format!(
-                    "[{} {} {}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
-                    x.genus, x.specific, x.subspecific, x.catalogue_of_life_taxon_id
+                    "[{}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
+                    assemble_scientific_name(&x.genus, &x.specific, Some(&x.subspecific)),
+                    x.catalogue_of_life_taxon_id
                 )
             })
             .collect::<Vec<String>>()

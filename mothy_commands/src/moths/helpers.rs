@@ -29,6 +29,17 @@ pub fn search_classification_valid<A: AsRef<str>, B: AsRef<str>>(
     return true; // no search requested (`search_input` == None)
 }
 
+pub fn assemble_scientific_name(genus: &str, specific: &str, subspecific: Option<&str>) -> String {
+    return format!(
+        "{} {} {}",
+        genus,
+        specific,
+        subspecific.unwrap_or_default().to_string()
+    )
+    .trim()
+    .to_string();
+}
+
 pub fn is_butterfly(
     butterfly_blacklist: &ButterflyBlacklist,
     superfamily: &Option<String>,
