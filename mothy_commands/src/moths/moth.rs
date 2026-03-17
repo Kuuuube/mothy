@@ -277,20 +277,23 @@ pub async fn moth_search(
             }
             BUTTON_ID_SELECT_UP => {
                 if selected_moth == 0 {
-                    continue;
+                    selected_moth =
+                        (moth_count - page_number * MOTHS_PER_PAGE).min(MOTHS_PER_PAGE) - 1;
+                } else {
+                    selected_moth -= 1;
                 }
-                selected_moth -= 1;
             }
             BUTTON_ID_SELECT_MOTH => {
                 current_mode = MothSearchMode::Moth;
             }
             BUTTON_ID_SELECT_DOWN => {
-                if selected_moth + 1
-                    > (moth_count - page_number * MOTHS_PER_PAGE).min(MOTHS_PER_PAGE)
+                if selected_moth
+                    >= (moth_count - page_number * MOTHS_PER_PAGE).min(MOTHS_PER_PAGE) - 1
                 {
-                    continue;
+                    selected_moth = 0;
+                } else {
+                    selected_moth += 1;
                 }
-                selected_moth += 1;
             }
             _ => continue,
         };
@@ -324,10 +327,7 @@ pub async fn moth_search(
                                 pagecount,
                                 Some(selected_moth),
                             ))
-                            .components(&[get_select_buttons(
-                                selected_moth,
-                                (moth_count - page_number * MOTHS_PER_PAGE).min(MOTHS_PER_PAGE),
-                            )]),
+                            .components(&[get_select_buttons()]),
                     )
                     .await?;
             }
@@ -398,17 +398,10 @@ fn get_pagination_buttons<'a>(
     ));
 }
 
-fn get_select_buttons<'a>(
-    current_selection: usize,
-    last_selection: usize,
-) -> serenity::CreateComponent<'a> {
-    let back_button = serenity::CreateButton::new(BUTTON_ID_SELECT_UP)
-        .label("🔼")
-        .disabled(current_selection == 0);
+fn get_select_buttons<'a>() -> serenity::CreateComponent<'a> {
+    let back_button = serenity::CreateButton::new(BUTTON_ID_SELECT_UP).label("🔼");
     let select_mode_button = serenity::CreateButton::new(BUTTON_ID_SELECT_MOTH).label("⏹️");
-    let forward_button = serenity::CreateButton::new(BUTTON_ID_SELECT_DOWN)
-        .label("🔽")
-        .disabled(current_selection == last_selection - 1);
+    let forward_button = serenity::CreateButton::new(BUTTON_ID_SELECT_DOWN).label("🔽");
     let back_to_pagination = serenity::CreateButton::new(BUTTON_ID_PAGINATION_MODE).label("↩️");
     return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
         vec![
