@@ -1,18 +1,11 @@
 use std::time::Duration;
 
-use crate::{Context, Error, moths::api_callers::*, moths::helpers::*};
+use crate::{Context, Error, moths::embed_assemblers::*, moths::helpers::*};
 use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
-use ::serenity::{
-    all::{ComponentInteractionCollector, CreateEmbed, CreateEmbedFooter},
-    futures::StreamExt,
-};
+use ::serenity::{all::ComponentInteractionCollector, futures::StreamExt};
 use rand::seq::IndexedRandom;
-use reqwest::Client as ReqwestClient;
-
-const CATALOGUE_OF_LIFE_TAXON_URL: &str = "https://www.catalogueoflife.org/data/taxon/";
-const GBIF_SPECIES_URL: &str = "https://www.gbif.org/species/";
 
 const MOTHS_PER_PAGE: usize = 10;
 const MOTH_SEARCH_INTERACTION_TIMEOUT: u64 = 300; // interaction tokens are only valid for 15 minutes max, this should never exceed `900` (realistically a bit lower to have a bit of safety buffer)
@@ -292,51 +285,6 @@ pub async fn moth_search(
     Ok(())
 }
 
-fn assemble_paginated_moth_search_embed<'a>(
-    moths: &Vec<&SpeciesData>,
-    moth_count: usize,
-    page_number: usize,
-    pagecount: usize,
-) -> CreateEmbed<'a> {
-    let title = format!("Search found {moth_count} moths");
-
-    let start = page_number * MOTHS_PER_PAGE;
-    let mut end = start + MOTHS_PER_PAGE;
-    if end >= moth_count {
-        end = moth_count;
-    }
-
-    let footer = format!(
-        "Page {}/{} - Showing moths {}-{}/{}",
-        page_number + 1,
-        pagecount,
-        start + 1,
-        end,
-        moth_count
-    );
-
-    let moths = moths[start..end]
-        .iter()
-        .map(|x| {
-            format!(
-                "[{}]({}{})",
-                assemble_scientific_name(
-                    &x.classification.genus,
-                    &x.classification.specific,
-                    x.classification.subspecific.as_deref()
-                ),
-                CATALOGUE_OF_LIFE_TAXON_URL,
-                x.catalogue_of_life_taxon_id
-            )
-        })
-        .collect::<Vec<String>>();
-
-    return serenity::CreateEmbed::default()
-        .title(title)
-        .footer(CreateEmbedFooter::new(footer))
-        .description(moths.join("\n"));
-}
-
 fn get_pagination_buttons<'a>(
     current_page: usize,
     last_page: usize,
@@ -356,124 +304,6 @@ fn get_pagination_buttons<'a>(
     return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
         vec![first_button, back_button, forward_button, last_button].into(),
     ));
-}
-
-async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {
-    let reqwest_client = ReqwestClient::builder()
-        .timeout(Duration::from_secs(60))
-        .build()
-        .unwrap();
-    let classifications = moth.classification.clone();
-
-    let species_formatted = assemble_scientific_name(
-        &moth.classification.genus,
-        &moth.classification.specific,
-        moth.classification.subspecific.as_deref(),
-    );
-
-    let (inaturalist_data_result, gbif_data_result) = tokio::join!(
-        try_get_inaturalist_data(&reqwest_client, &species_formatted),
-        try_get_gbif_data(&reqwest_client, &species_formatted),
-    );
-
-    let title = species_formatted;
-
-    let mut fields = vec![];
-
-    if let Some(common_names) = &moth.common_names {
-        fields.push(("Common Names", common_names.join(", "), false));
-    } else if let Ok(ref inaturalist_data) = inaturalist_data_result
-        && let Some(common_name) = &inaturalist_data.preferred_common_name
-    {
-        fields.push(("Common Names", common_name.to_string(), false));
-    }
-
-    let moth_rank_flow = get_moth_rank_vec(&[
-        classifications.superfamily,
-        classifications.family,
-        classifications.subfamily,
-        classifications.tribe,
-        classifications.subtribe,
-        Some(classifications.genus),
-        Some(classifications.specific),
-        classifications.subspecific,
-    ])
-    .join(" -> ");
-    fields.push(("Classification", moth_rank_flow, false));
-
-    if let Some(synonyms) = &moth.synonyms {
-        let synonyms_formatted = synonyms
-            .iter()
-            .map(|x| {
-                format!(
-                    "[{}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
-                    assemble_scientific_name(&x.genus, &x.specific, x.subspecific.as_deref()),
-                    x.catalogue_of_life_taxon_id
-                )
-            })
-            .collect::<Vec<String>>()
-            .join(", ");
-        fields.push(("Synonyms", synonyms_formatted, false));
-    }
-
-    if let Some(subspecies) = &moth.subspecies {
-        let subspecies_formatted = subspecies
-            .iter()
-            .map(|x| {
-                format!(
-                    "[{}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
-                    assemble_scientific_name(&x.genus, &x.specific, Some(&x.subspecific)),
-                    x.catalogue_of_life_taxon_id
-                )
-            })
-            .collect::<Vec<String>>()
-            .join(", ");
-        fields.push(("Subspecies", subspecies_formatted, false));
-    }
-
-    if let Some(published_in) = &moth.published_in {
-        fields.push(("Published In", published_in.to_string(), false));
-    }
-
-    let mut more_info_field_urls: Vec<String> = Vec::new();
-
-    if let Ok(inaturalist_data) = &inaturalist_data_result {
-        // the iNaturalist ID will always be present but don't bother linking photos if there are none
-        if inaturalist_data.photo_url.is_some() {
-            fields.push((
-                "Photos",
-                format!("[iNaturalist]({})", inaturalist_data.inaturalist_url),
-                false,
-            ));
-        }
-        if let Some(wikipedia_url) = &inaturalist_data.wikipedia_url {
-            more_info_field_urls.push(format!("[Wikipedia]({})", wikipedia_url));
-        }
-    }
-    let thumbnail_url = match inaturalist_data_result {
-        Ok(ok) => ok.photo_url.unwrap_or_default(),
-        Err(_err) => "".to_string(),
-    };
-
-    if let Ok(gbif_data) = gbif_data_result {
-        more_info_field_urls.push(format!("[GBIF]({GBIF_SPECIES_URL}{})", gbif_data.usage_key));
-    }
-
-    if more_info_field_urls.len() > 0 {
-        fields.push(("More Info", more_info_field_urls.join("\n"), false));
-    }
-
-    let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
-
-    return serenity::CreateEmbed::default()
-        .title(title)
-        .url(format!(
-            "{CATALOGUE_OF_LIFE_TAXON_URL}{}",
-            moth.catalogue_of_life_taxon_id
-        ))
-        .fields(fields)
-        .thumbnail(thumbnail_url)
-        .footer(footer);
 }
 
 #[must_use]

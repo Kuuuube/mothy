@@ -1,4 +1,5 @@
 pub mod api_callers;
+pub mod embed_assemblers;
 pub mod helpers;
 pub mod moth;
 
