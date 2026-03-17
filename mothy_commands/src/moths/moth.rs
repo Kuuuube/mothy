@@ -405,7 +405,7 @@ fn get_select_buttons<'a>(
     let back_button = serenity::CreateButton::new(BUTTON_ID_SELECT_UP)
         .label("🔼")
         .disabled(current_selection == 0);
-    let select_mode_button = serenity::CreateButton::new(BUTTON_ID_SELECT_MOTH).label("⏺️");
+    let select_mode_button = serenity::CreateButton::new(BUTTON_ID_SELECT_MOTH).label("⏹️");
     let forward_button = serenity::CreateButton::new(BUTTON_ID_SELECT_DOWN)
         .label("🔽")
         .disabled(current_selection == last_selection - 1);
