@@ -136,6 +136,7 @@ pub fn assemble_paginated_moth_search_embed<'a>(
     moth_count: usize,
     page_number: usize,
     pagecount: usize,
+    selected_moth: Option<usize>,
 ) -> CreateEmbed<'a> {
     let title = format!("Search found {moth_count} moths");
 
@@ -154,7 +155,7 @@ pub fn assemble_paginated_moth_search_embed<'a>(
         moth_count
     );
 
-    let moths = moths[start..end]
+    let mut moths = moths[start..end]
         .iter()
         .map(|x| {
             format!(
@@ -169,6 +170,12 @@ pub fn assemble_paginated_moth_search_embed<'a>(
             )
         })
         .collect::<Vec<String>>();
+
+    if let Some(selected_moth) = selected_moth {
+        if let Some(moth_entry) = moths.get_mut(selected_moth) {
+            *moth_entry = format!("**{moth_entry}** <-");
+        }
+    }
 
     return serenity::CreateEmbed::default()
         .title(title)

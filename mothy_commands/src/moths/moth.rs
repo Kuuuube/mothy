@@ -9,10 +9,23 @@ use rand::seq::IndexedRandom;
 
 const MOTHS_PER_PAGE: usize = 10;
 const MOTH_SEARCH_INTERACTION_TIMEOUT: u64 = 300; // interaction tokens are only valid for 15 minutes max, this should never exceed `900` (realistically a bit lower to have a bit of safety buffer)
-const BUTTON_ID_FIRST: &str = "First";
-const BUTTON_ID_BACK: &str = "Back";
-const BUTTON_ID_FORWARD: &str = "Forward";
-const BUTTON_ID_LAST: &str = "Last";
+
+const BUTTON_ID_PAGINATION_MODE: &str = "Pagination Mode";
+const BUTTON_ID_PAGINATION_FIRST: &str = "Pagination First";
+const BUTTON_ID_PAGINATION_BACK: &str = "Pagination Back";
+const BUTTON_ID_PAGINATION_FORWARD: &str = "Pagination Forward";
+const BUTTON_ID_PAGINATION_LAST: &str = "Pagination Last";
+
+const BUTTON_ID_SELECT_MODE: &str = "Select Mode";
+const BUTTON_ID_SELECT_UP: &str = "Select Up";
+const BUTTON_ID_SELECT_MOTH: &str = "Select Moth";
+const BUTTON_ID_SELECT_DOWN: &str = "Select Down";
+
+enum MothSearchMode {
+    Pagination,
+    Select,
+    Moth,
+}
 
 /// Find a random moth
 #[poise::command(
@@ -199,10 +212,17 @@ pub async fn moth_search(
         ))
     });
 
+    let mut current_mode = MothSearchMode::Pagination;
     let mut page_number = 0;
+    let mut selected_moth = 0;
     let pagecount = (moth_count + MOTHS_PER_PAGE - 1) / MOTHS_PER_PAGE; // int division that rounds up
-    let embed =
-        assemble_paginated_moth_search_embed(&moths_found, moth_count, page_number, pagecount);
+    let embed = assemble_paginated_moth_search_embed(
+        &moths_found,
+        moth_count,
+        page_number,
+        pagecount,
+        None,
+    );
 
     let bot_message = ctx
         .send(
@@ -224,46 +244,109 @@ pub async fn moth_search(
             .await
             .expect("Interaction defer fail, this shouldn't happen");
         match interaction.data.custom_id.clone().into_string().as_str() {
-            BUTTON_ID_FIRST => {
+            BUTTON_ID_PAGINATION_MODE => {
+                current_mode = MothSearchMode::Pagination;
+            }
+            BUTTON_ID_PAGINATION_FIRST => {
                 if page_number == 0 {
                     continue;
                 }
                 page_number = 0;
             }
-            BUTTON_ID_BACK => {
+            BUTTON_ID_PAGINATION_BACK => {
                 if page_number == 0 {
                     continue;
                 }
                 page_number -= 1;
             }
-            BUTTON_ID_FORWARD => {
+            BUTTON_ID_PAGINATION_FORWARD => {
                 if page_number == pagecount - 1 {
                     continue;
                 }
                 page_number += 1;
             }
-            BUTTON_ID_LAST => {
+            BUTTON_ID_PAGINATION_LAST => {
                 if page_number == pagecount - 1 {
                     continue;
                 }
                 page_number = pagecount - 1;
             }
+            BUTTON_ID_SELECT_MODE => {
+                current_mode = MothSearchMode::Select;
+                selected_moth = 0;
+            }
+            BUTTON_ID_SELECT_UP => {
+                if selected_moth == 0 {
+                    continue;
+                }
+                selected_moth -= 1;
+            }
+            BUTTON_ID_SELECT_MOTH => {
+                current_mode = MothSearchMode::Moth;
+            }
+            BUTTON_ID_SELECT_DOWN => {
+                if selected_moth + 1
+                    > (moth_count - page_number * MOTHS_PER_PAGE).min(MOTHS_PER_PAGE)
+                {
+                    continue;
+                }
+                selected_moth += 1;
+            }
             _ => continue,
         };
 
-        bot_message
-            .edit(
-                ctx,
-                poise::CreateReply::default()
-                    .embed(assemble_paginated_moth_search_embed(
-                        &moths_found,
-                        moth_count,
-                        page_number,
-                        pagecount,
-                    ))
-                    .components(&[get_pagination_buttons(page_number, pagecount)]),
-            )
-            .await?;
+        match current_mode {
+            MothSearchMode::Pagination => {
+                bot_message
+                    .edit(
+                        ctx,
+                        poise::CreateReply::default()
+                            .embed(assemble_paginated_moth_search_embed(
+                                &moths_found,
+                                moth_count,
+                                page_number,
+                                pagecount,
+                                None,
+                            ))
+                            .components(&[get_pagination_buttons(page_number, pagecount)]),
+                    )
+                    .await?;
+            }
+            MothSearchMode::Select => {
+                bot_message
+                    .edit(
+                        ctx,
+                        poise::CreateReply::default()
+                            .embed(assemble_paginated_moth_search_embed(
+                                &moths_found,
+                                moth_count,
+                                page_number,
+                                pagecount,
+                                Some(selected_moth),
+                            ))
+                            .components(&[get_select_buttons(
+                                selected_moth,
+                                (moth_count - page_number * MOTHS_PER_PAGE).min(MOTHS_PER_PAGE),
+                            )]),
+                    )
+                    .await?;
+            }
+            MothSearchMode::Moth => {
+                let selected_moth_data = moths_found
+                    .get(page_number * MOTHS_PER_PAGE + selected_moth)
+                    .unwrap();
+                bot_message
+                    .edit(
+                        ctx,
+                        poise::CreateReply::default()
+                            .embed(assemble_moth_embed(selected_moth_data).await)
+                            .components(&[]),
+                    )
+                    .await?;
+
+                return Ok(());
+            }
+        }
     }
 
     // edit out buttons after timeout
@@ -277,6 +360,7 @@ pub async fn moth_search(
                     moth_count,
                     page_number,
                     pagecount,
+                    None,
                 ))
                 .components(&[]),
         )
@@ -289,20 +373,51 @@ fn get_pagination_buttons<'a>(
     current_page: usize,
     last_page: usize,
 ) -> serenity::CreateComponent<'a> {
-    let first_button = serenity::CreateButton::new(BUTTON_ID_FIRST)
+    let first_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_FIRST)
         .label("⏮️")
         .disabled(current_page == 0);
-    let back_button = serenity::CreateButton::new(BUTTON_ID_BACK)
+    let back_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_BACK)
         .label("◀️")
         .disabled(current_page == 0);
-    let forward_button = serenity::CreateButton::new(BUTTON_ID_FORWARD)
+    let select_mode_button = serenity::CreateButton::new(BUTTON_ID_SELECT_MODE).label("⏺️");
+    let forward_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_FORWARD)
         .label("▶️")
         .disabled(current_page == last_page - 1);
-    let last_button = serenity::CreateButton::new(BUTTON_ID_LAST)
+    let last_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_LAST)
         .label("⏭️")
         .disabled(current_page == last_page - 1);
     return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
-        vec![first_button, back_button, forward_button, last_button].into(),
+        vec![
+            first_button,
+            back_button,
+            select_mode_button,
+            forward_button,
+            last_button,
+        ]
+        .into(),
+    ));
+}
+
+fn get_select_buttons<'a>(
+    current_selection: usize,
+    last_selection: usize,
+) -> serenity::CreateComponent<'a> {
+    let back_button = serenity::CreateButton::new(BUTTON_ID_SELECT_UP)
+        .label("🔼")
+        .disabled(current_selection == 0);
+    let select_mode_button = serenity::CreateButton::new(BUTTON_ID_SELECT_MOTH).label("⏺️");
+    let forward_button = serenity::CreateButton::new(BUTTON_ID_SELECT_DOWN)
+        .label("🔽")
+        .disabled(current_selection == last_selection - 1);
+    let back_to_pagination = serenity::CreateButton::new(BUTTON_ID_PAGINATION_MODE).label("↩️");
+    return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
+        vec![
+            back_button,
+            select_mode_button,
+            forward_button,
+            back_to_pagination,
+        ]
+        .into(),
     ));
 }
 
