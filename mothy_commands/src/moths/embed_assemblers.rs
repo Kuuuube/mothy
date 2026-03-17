@@ -173,7 +173,7 @@ pub fn assemble_paginated_moth_search_embed<'a>(
 
     if let Some(selected_moth) = selected_moth {
         if let Some(moth_entry) = moths.get_mut(selected_moth) {
-            *moth_entry = format!("**{moth_entry}** <-");
+            *moth_entry = format!("**{moth_entry}** ⬅︎");
         }
     }
 
