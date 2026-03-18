@@ -4,7 +4,10 @@ use crate::{Context, Error, moths::embed_assemblers::*, moths::helpers::*};
 use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
-use ::serenity::{all::ComponentInteractionCollector, futures::StreamExt};
+use ::serenity::{
+    all::{ComponentInteractionCollector, EmojiId, ReactionType},
+    futures::StreamExt,
+};
 use rand::seq::IndexedRandom;
 
 const MOTHS_PER_PAGE: usize = 10;
@@ -373,18 +376,44 @@ fn get_pagination_buttons<'a>(
     current_page: usize,
     last_page: usize,
 ) -> serenity::CreateComponent<'a> {
+    // ⏮️
     let first_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_FIRST)
-        .label("⏮️")
+        .emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483966707809779813),
+            name: None,
+        })
         .disabled(current_page == 0);
+    // ◀️
     let back_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_BACK)
-        .label("◀️")
+        .emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483967178784112731),
+            name: None,
+        })
         .disabled(current_page == 0);
-    let select_mode_button = serenity::CreateButton::new(BUTTON_ID_SELECT_MODE).label("⏺️");
+    // ⏺️
+    let select_mode_button =
+        serenity::CreateButton::new(BUTTON_ID_SELECT_MODE).emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483967184983167106),
+            name: None,
+        });
+    // ▶️
     let forward_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_FORWARD)
-        .label("▶️")
+        .emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483967180168101928),
+            name: None,
+        })
         .disabled(current_page == last_page - 1);
+    // ⏭️
     let last_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_LAST)
-        .label("⏭️")
+        .emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483967181308821594),
+            name: None,
+        })
         .disabled(current_page == last_page - 1);
     return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
         vec![
@@ -399,10 +428,34 @@ fn get_pagination_buttons<'a>(
 }
 
 fn get_select_buttons<'a>() -> serenity::CreateComponent<'a> {
-    let back_button = serenity::CreateButton::new(BUTTON_ID_SELECT_UP).label("🔼");
-    let select_mode_button = serenity::CreateButton::new(BUTTON_ID_SELECT_MOTH).label("⏹️");
-    let forward_button = serenity::CreateButton::new(BUTTON_ID_SELECT_DOWN).label("🔽");
-    let back_to_pagination = serenity::CreateButton::new(BUTTON_ID_PAGINATION_MODE).label("↩️");
+    // 🔼
+    let back_button =
+        serenity::CreateButton::new(BUTTON_ID_SELECT_UP).emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483967187625709608),
+            name: None,
+        });
+    // ⏹️
+    let select_mode_button =
+        serenity::CreateButton::new(BUTTON_ID_SELECT_MOTH).emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483967186140790784),
+            name: None,
+        });
+    // 🔽
+    let forward_button =
+        serenity::CreateButton::new(BUTTON_ID_SELECT_DOWN).emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483967183888453693),
+            name: None,
+        });
+    // ↩️
+    let back_to_pagination =
+        serenity::CreateButton::new(BUTTON_ID_PAGINATION_MODE).emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1483967182642745375),
+            name: None,
+        });
     return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
         vec![
             back_button,
