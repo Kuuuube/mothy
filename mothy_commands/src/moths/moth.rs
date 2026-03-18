@@ -68,14 +68,14 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
 )]
 pub async fn moth_search(
     ctx: Context<'_>,
-    superfamily: Option<String>,
-    family: Option<String>,
-    subfamily: Option<String>,
-    tribe: Option<String>,
-    subtribe: Option<String>,
-    genus: Option<String>,
-    specific: Option<String>,
-    subspecific: Option<String>,
+    #[description = "The superfamily to search for moths in"] superfamily: Option<String>,
+    #[description = "The family to search for moths in"] family: Option<String>,
+    #[description = "The subfamily to search for moths in"] subfamily: Option<String>,
+    #[description = "The tribe to search for moths in"] tribe: Option<String>,
+    #[description = "The subtribe to search for moths in"] subtribe: Option<String>,
+    #[description = "The genus to search for moths in"] genus: Option<String>,
+    #[description = "The specific name to search for moths in"] specific: Option<String>,
+    #[description = "The subspecific name to search for moths in"] subspecific: Option<String>,
 ) -> Result<(), Error> {
     // this command's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
     ctx.defer()
