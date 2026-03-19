@@ -101,7 +101,7 @@ async fn get_guilds(ctx: Context<'_>) -> Result<(), Error> {
         .join("\n");
 
     ctx.send(CreateReply::new().attachment(CreateAttachment::bytes(
-        format!("{}\n{guilds_list_formatted}", GuildListEntry::get_header()),
+        format!("{}\n{guilds_list_formatted}\n", GuildListEntry::get_header()),
         "guild_data.txt",
     )))
     .await?;
