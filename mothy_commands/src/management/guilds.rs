@@ -108,6 +108,11 @@ async fn get_guilds(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
+#[poise::command(rename = "leave-guild", prefix_command, hide_in_help, owners_only)]
+async fn leave_guild(ctx: Context<'_>, guild_id: u64) -> Result<(), Error> {
+    ctx.http().leave_guild(guild_id.into()).await?;
+    Ok(())
+}
 
 #[must_use]
 pub fn commands() -> [crate::Command; 1] {
