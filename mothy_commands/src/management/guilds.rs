@@ -118,6 +118,6 @@ async fn leave_guild(ctx: Context<'_>, guild_id: u64) -> Result<(), Error> {
 }
 
 #[must_use]
-pub fn commands() -> [crate::Command; 1] {
-    [get_guilds()]
+pub fn commands() -> [crate::Command; 2] {
+    [get_guilds(), leave_guild()]
 }
