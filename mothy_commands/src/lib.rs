@@ -1,4 +1,5 @@
 pub mod fun;
+pub mod management;
 pub mod meta;
 pub mod moths;
 pub mod utility;
@@ -16,6 +17,7 @@ pub fn commands() -> Vec<crate::Command> {
         .chain(fun::commands())
         .chain(utility::commands())
         .chain(moths::commands())
+        .chain(management::commands())
         .collect();
 
     if std::env::var("DEV_COMMANDS")
