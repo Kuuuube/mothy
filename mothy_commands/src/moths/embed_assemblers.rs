@@ -123,8 +123,6 @@ pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateE
         ));
     }
 
-    println!("{:?}", fields);
-
     let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
 
     return serenity::CreateEmbed::default()
