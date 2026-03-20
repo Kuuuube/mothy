@@ -13,7 +13,7 @@ const GBIF_SPECIES_URL: &str = "https://www.gbif.org/species/";
 
 const MOTHS_PER_PAGE: usize = 10;
 
-pub async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed<'_> {
+pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateEmbed<'a> {
     let reqwest_client = ReqwestClient::builder()
         .timeout(Duration::from_secs(60))
         .build()
@@ -33,14 +33,14 @@ pub async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed
 
     let title = species_formatted;
 
-    let mut fields = vec![];
+    let mut fields: Vec<(String, String, bool)> = vec![];
 
     if let Some(common_names) = &moth.common_names {
-        fields.push(("Common Names", common_names.join(", "), false));
+        fields.push(("Common Names".to_string(), common_names.join(", "), false));
     } else if let Ok(ref inaturalist_data) = inaturalist_data_result
         && let Some(common_name) = &inaturalist_data.preferred_common_name
     {
-        fields.push(("Common Names", common_name.to_string(), false));
+        fields.push(("Common Names".to_string(), common_name.to_string(), false));
     }
 
     let moth_rank_flow = get_moth_rank_vec(&[
@@ -54,7 +54,7 @@ pub async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed
         classifications.subspecific,
     ])
     .join(" -> ");
-    fields.push(("Classification", moth_rank_flow, false));
+    fields.push(("Classification".to_string(), moth_rank_flow, false));
 
     if let Some(synonyms) = &moth.synonyms {
         let synonyms_formatted = synonyms
@@ -66,9 +66,10 @@ pub async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed
                     x.catalogue_of_life_taxon_id
                 )
             })
-            .collect::<Vec<String>>()
-            .join(", ");
-        fields.push(("Synonyms", synonyms_formatted, false));
+            .collect::<Vec<String>>();
+
+        let synonym_fields = create_sized_fields("Synonyms", synonyms_formatted, ", ");
+        fields = [fields, synonym_fields].concat();
     }
 
     if let Some(subspecies) = &moth.subspecies {
@@ -83,11 +84,11 @@ pub async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed
             })
             .collect::<Vec<String>>()
             .join(", ");
-        fields.push(("Subspecies", subspecies_formatted, false));
+        fields.push(("Subspecies".to_string(), subspecies_formatted, false));
     }
 
     if let Some(published_in) = &moth.published_in {
-        fields.push(("Published In", published_in.to_string(), false));
+        fields.push(("Published In".to_string(), published_in.to_string(), false));
     }
 
     let mut more_info_field_urls: Vec<String> = Vec::new();
@@ -96,7 +97,7 @@ pub async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed
         // the iNaturalist ID will always be present but don't bother linking photos if there are none
         if inaturalist_data.photo_url.is_some() {
             fields.push((
-                "Photos",
+                "Photos".to_string(),
                 format!("[iNaturalist]({})", inaturalist_data.inaturalist_url),
                 false,
             ));
@@ -115,8 +116,14 @@ pub async fn assemble_moth_embed(moth: &moth_filter::SpeciesData) -> CreateEmbed
     }
 
     if more_info_field_urls.len() > 0 {
-        fields.push(("More Info", more_info_field_urls.join("\n"), false));
+        fields.push((
+            "More Info".to_string(),
+            more_info_field_urls.join("\n"),
+            false,
+        ));
     }
+
+    println!("{:?}", fields);
 
     let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
 
@@ -181,4 +188,43 @@ pub fn assemble_paginated_moth_search_embed<'a>(
         .title(title)
         .footer(CreateEmbedFooter::new(footer))
         .description(moths.join("\n"));
+}
+
+const MAX_FIELD_SIZE: usize = 1024;
+fn create_sized_fields<'a>(
+    field_name: &'a str,
+    field_contents_split: Vec<String>,
+    delimiter: &str,
+) -> Vec<(String, String, bool)> {
+    let mut fields = Vec::new();
+    let mut field_count = 0;
+    let mut current_field_size = 0;
+
+    let mut current_field_content = Vec::new();
+
+    for field_content in field_contents_split {
+        if field_content.len() > MAX_FIELD_SIZE {
+            continue;
+        }
+
+        if current_field_size + field_content.len() + delimiter.len() > MAX_FIELD_SIZE {
+            let field_name = match field_count {
+                0 => field_name,
+                _ => "",
+            };
+            fields.push((
+                field_name.to_string(),
+                current_field_content.join(delimiter),
+                false,
+            ));
+            field_count += 1;
+            current_field_content = Vec::new();
+            current_field_size = 0;
+        } else {
+            current_field_size += field_content.len() + delimiter.len();
+            current_field_content.push(field_content);
+        }
+    }
+
+    return fields;
 }
