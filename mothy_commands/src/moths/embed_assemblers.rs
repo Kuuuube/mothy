@@ -82,9 +82,9 @@ pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateE
                     x.catalogue_of_life_taxon_id
                 )
             })
-            .collect::<Vec<String>>()
-            .join(", ");
-        fields.push(("Subspecies".to_string(), subspecies_formatted, false));
+            .collect::<Vec<String>>();
+        let subspecies_fields = create_sized_fields("Subspecies", subspecies_formatted, ", ");
+        fields = [fields, subspecies_fields].concat();
     }
 
     if let Some(published_in) = &moth.published_in {
