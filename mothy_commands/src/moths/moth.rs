@@ -18,6 +18,7 @@ const BUTTON_ID_PAGINATION_FIRST: &str = "Pagination First";
 const BUTTON_ID_PAGINATION_BACK: &str = "Pagination Back";
 const BUTTON_ID_PAGINATION_FORWARD: &str = "Pagination Forward";
 const BUTTON_ID_PAGINATION_LAST: &str = "Pagination Last";
+const BUTTON_ID_PAGINATION_GO_TO_PAGE: &str = "Pagination Go To Page";
 
 const BUTTON_ID_SELECT_MODE: &str = "Select Mode";
 const BUTTON_ID_SELECT_UP: &str = "Select Up";
@@ -276,6 +277,9 @@ pub async fn moth_search(
                 }
                 page_number = pagecount - 1;
             }
+            BUTTON_ID_PAGINATION_GO_TO_PAGE => {
+
+            }
             BUTTON_ID_SELECT_MODE => {
                 current_mode = MothSearchMode::Select;
                 selected_moth = 0;
@@ -417,6 +421,13 @@ fn get_pagination_buttons<'a>(
             name: None,
         })
         .disabled(current_page == last_page - 1);
+    // 🔢
+    let goto_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_GO_TO_PAGE)
+        .emoji(ReactionType::Custom {
+            animated: false,
+            id: EmojiId::new(1485048273789255841),
+            name: None,
+        });
     return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
         vec![
             first_button,
@@ -424,6 +435,7 @@ fn get_pagination_buttons<'a>(
             select_mode_button,
             forward_button,
             last_button,
+            goto_button,
         ]
         .into(),
     ));
