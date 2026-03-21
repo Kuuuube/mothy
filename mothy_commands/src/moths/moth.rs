@@ -37,7 +37,7 @@ enum MothSearchMode {
     install_context = "Guild|User",
     interaction_context = "Guild|BotDm|PrivateChannel",
     category = "Moths",
-    user_cooldown = "30"
+    user_cooldown = "10"
 )]
 pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     // this command's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
@@ -64,7 +64,8 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     install_context = "Guild|User",
     interaction_context = "Guild|BotDm|PrivateChannel",
     category = "Moths",
-    user_cooldown = "30"
+    // This command may appear heavy on memory, it is not. All the moth data besides what is actively displayed is borrowed
+    user_cooldown = "10"
 )]
 pub async fn moth_search(
     ctx: Context<'_>,
