@@ -5,7 +5,11 @@ use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
 use ::serenity::{
-    all::{ComponentInteractionCollector, EmojiId, ReactionType},
+    all::{
+        ComponentInteractionCollector, CreateInputText, CreateInteractionResponse,
+        CreateInteractionResponseMessage, CreateQuickModal, EmojiId, InputTextStyle, QuickModal,
+        ReactionType,
+    },
     futures::StreamExt,
 };
 use rand::seq::IndexedRandom;
@@ -19,6 +23,7 @@ const BUTTON_ID_PAGINATION_BACK: &str = "Pagination Back";
 const BUTTON_ID_PAGINATION_FORWARD: &str = "Pagination Forward";
 const BUTTON_ID_PAGINATION_LAST: &str = "Pagination Last";
 const BUTTON_ID_PAGINATION_GO_TO_PAGE: &str = "Pagination Go To Page";
+const MODAL_ID_PAGINATION_GO_TO_PAGE: &str = "Pagination Go To Page Modal";
 
 const BUTTON_ID_SELECT_MODE: &str = "Select Mode";
 const BUTTON_ID_SELECT_UP: &str = "Select Up";
@@ -60,7 +65,6 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
 /// Search for a moth
 #[poise::command(
     rename = "moth-search",
-    prefix_command,
     slash_command,
     install_context = "Guild|User",
     interaction_context = "Guild|BotDm|PrivateChannel",
@@ -245,11 +249,15 @@ pub async fn moth_search(
 
     while let Some(interaction) = interaction_collector.next().await {
         // this interactions's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
-        interaction
-            .defer(ctx.http())
-            .await
-            .expect("Interaction defer fail, this shouldn't happen");
-        match interaction.data.custom_id.clone().into_string().as_str() {
+        // exclude modal interactions
+        if interaction.data.custom_id.to_string() != BUTTON_ID_PAGINATION_GO_TO_PAGE {
+            interaction
+                .defer(ctx.http())
+                .await
+                .expect("Interaction defer fail, this shouldn't happen");
+        }
+
+        match interaction.data.custom_id.to_string().as_str() {
             BUTTON_ID_PAGINATION_MODE => {
                 current_mode = MothSearchMode::Pagination;
             }
@@ -278,7 +286,37 @@ pub async fn moth_search(
                 page_number = pagecount - 1;
             }
             BUTTON_ID_PAGINATION_GO_TO_PAGE => {
-
+                let field = CreateInputText::new(
+                    InputTextStyle::Short,
+                    "Page Number",
+                    MODAL_ID_PAGINATION_GO_TO_PAGE,
+                );
+                let modal = CreateQuickModal::new("Jump to Page").field(field);
+                if let Ok(data_option) =
+                    interaction.quick_modal(ctx.serenity_context(), modal).await
+                    && let Some(data) = data_option
+                {
+                    if let Some(input_page_number_string) = data.inputs.get(0)
+                        && let Ok(input_page_number) = input_page_number_string.parse::<usize>()
+                        && input_page_number <= pagecount
+                        && input_page_number >= 1
+                    {
+                        page_number = input_page_number - 1;
+                        data.interaction
+                            .create_response(ctx.http(), CreateInteractionResponse::Acknowledge)
+                            .await?;
+                    } else {
+                        let message = CreateInteractionResponseMessage::new()
+                            .content("Invalid page number")
+                            .ephemeral(true);
+                        data.interaction
+                            .create_response(
+                                ctx.http(),
+                                CreateInteractionResponse::Message(message),
+                            )
+                            .await?;
+                    }
+                };
             }
             BUTTON_ID_SELECT_MODE => {
                 current_mode = MothSearchMode::Select;
@@ -382,14 +420,6 @@ fn get_pagination_buttons<'a>(
     current_page: usize,
     last_page: usize,
 ) -> serenity::CreateComponent<'a> {
-    // ⏮️
-    let first_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_FIRST)
-        .emoji(ReactionType::Custom {
-            animated: false,
-            id: EmojiId::new(1483966707809779813),
-            name: None,
-        })
-        .disabled(current_page == 0);
     // ◀️
     let back_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_BACK)
         .emoji(ReactionType::Custom {
@@ -413,31 +443,15 @@ fn get_pagination_buttons<'a>(
             name: None,
         })
         .disabled(current_page == last_page - 1);
-    // ⏭️
-    let last_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_LAST)
-        .emoji(ReactionType::Custom {
-            animated: false,
-            id: EmojiId::new(1483967181308821594),
-            name: None,
-        })
-        .disabled(current_page == last_page - 1);
     // 🔢
-    let goto_button = serenity::CreateButton::new(BUTTON_ID_PAGINATION_GO_TO_PAGE)
-        .emoji(ReactionType::Custom {
+    let goto_button =
+        serenity::CreateButton::new(BUTTON_ID_PAGINATION_GO_TO_PAGE).emoji(ReactionType::Custom {
             animated: false,
             id: EmojiId::new(1485048273789255841),
             name: None,
         });
     return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
-        vec![
-            first_button,
-            back_button,
-            select_mode_button,
-            forward_button,
-            last_button,
-            goto_button,
-        ]
-        .into(),
+        vec![back_button, select_mode_button, forward_button, goto_button].into(),
     ));
 }
 
