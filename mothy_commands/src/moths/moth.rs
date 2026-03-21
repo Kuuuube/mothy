@@ -82,9 +82,10 @@ pub async fn moth_search(
         .await
         .expect("moth_search command response defer fail, this shouldn't happen");
 
-    let moth_data = &ctx.data().moth_data.moth_data;
-    let moth_synonyms = &ctx.data().moth_data.moth_synonyms;
-    let butterfly_blacklist = &ctx.data().moth_data.butterfly_blacklist;
+    let data = ctx.data();
+    let moth_data = &data.moth_data.moth_data;
+    let moth_synonyms = &data.moth_data.moth_synonyms;
+    let butterfly_blacklist = &data.moth_data.butterfly_blacklist;
 
     // ugly lepidoptera searching is not allowed (butteryflies)
     if is_butterfly(
