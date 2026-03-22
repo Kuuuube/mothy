@@ -315,6 +315,7 @@ pub async fn moth_search(
                                 CreateInteractionResponse::Message(message),
                             )
                             .await?;
+                        continue;
                     }
                 };
             }
