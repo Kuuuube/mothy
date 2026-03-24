@@ -87,7 +87,7 @@ pub struct GBIFData {
 pub async fn try_get_gbif_data(reqwest: &ReqwestClient, species: &str) -> Result<GBIFData, Error> {
     let response = reqwest
         .get("https://api.gbif.org/v2/species/match")
-        .query(&[("scientificName", species)])
+        .query(&[("scientificName", species), ("strict", "true")])
         // user agent with identifying url as requested by GBIF at https://techdocs.gbif.org/en/openapi/#rate-limits
         // "If you are integrating the GBIF API into a website or app, we highly recommend you set the HTTP `User-Agent` to a URL or email address. We can then contact you if there is a problem."
         .header("User-Agent", format!("{USER_AGENT} {KUUUBE_SOURCE_URL}"))
