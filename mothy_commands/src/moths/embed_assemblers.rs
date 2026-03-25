@@ -231,6 +231,10 @@ fn create_sized_fields<'a>(
         }
     }
     if current_field_content.len() > 0 {
+        let field_name = match field_count {
+            0 => field_name,
+            _ => "",
+        };
         fields.push((
             field_name.to_string(),
             current_field_content.join(delimiter),
