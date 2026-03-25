@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use mothy_core::error::Error;
 use reqwest::Client as ReqwestClient;
 
 use crate::{moths::api_callers::*, moths::helpers::*};
@@ -13,12 +14,13 @@ const GBIF_SPECIES_URL: &str = "https://www.gbif.org/species/";
 
 const MOTHS_PER_PAGE: usize = 10;
 
+const MAX_FIELD_LENGTH: usize = 1024;
+
 pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateEmbed<'a> {
     let reqwest_client = ReqwestClient::builder()
         .timeout(Duration::from_secs(60))
         .build()
         .unwrap();
-    let classifications = moth.classification.clone();
 
     let species_formatted = assemble_scientific_name(
         &moth.classification.genus,
@@ -32,6 +34,32 @@ pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateE
     );
 
     let title = species_formatted;
+    let thumbnail_url = match inaturalist_data_result {
+        Ok(ref ok) => ok.photo_url.clone().unwrap_or_default(),
+        Err(ref _err) => "".to_string(),
+    };
+
+    let fields = assemble_moth_embed_fields(moth, inaturalist_data_result, gbif_data_result).await;
+
+    let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
+
+    return serenity::CreateEmbed::default()
+        .title(title)
+        .url(format!(
+            "{CATALOGUE_OF_LIFE_TAXON_URL}{}",
+            moth.catalogue_of_life_taxon_id
+        ))
+        .fields(fields)
+        .thumbnail(thumbnail_url)
+        .footer(footer);
+}
+
+async fn assemble_moth_embed_fields(
+    moth: &moth_filter::SpeciesData,
+    inaturalist_data_result: Result<INaturalistData, Error>,
+    gbif_data_result: Result<GBIFData, Error>,
+) -> Vec<(String, String, bool)> {
+    let classifications = moth.classification.clone();
 
     let mut fields: Vec<(String, String, bool)> = vec![];
 
@@ -59,13 +87,7 @@ pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateE
     if let Some(synonyms) = &moth.synonyms {
         let synonyms_formatted = synonyms
             .iter()
-            .map(|x| {
-                format!(
-                    "[{}]({CATALOGUE_OF_LIFE_TAXON_URL}{})",
-                    assemble_scientific_name(&x.genus, &x.specific, x.subspecific.as_deref()),
-                    x.catalogue_of_life_taxon_id
-                )
-            })
+            .map(|x| assemble_scientific_name(&x.genus, &x.specific, x.subspecific.as_deref()))
             .collect::<Vec<String>>();
 
         let synonym_fields = create_sized_fields("Synonyms", synonyms_formatted, ", ");
@@ -106,10 +128,6 @@ pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateE
             more_info_field_urls.push(format!("[Wikipedia]({})", wikipedia_url));
         }
     }
-    let thumbnail_url = match inaturalist_data_result {
-        Ok(ok) => ok.photo_url.unwrap_or_default(),
-        Err(_err) => "".to_string(),
-    };
 
     if let Ok(gbif_data) = gbif_data_result {
         more_info_field_urls.push(format!("[GBIF]({GBIF_SPECIES_URL}{})", gbif_data.usage_key));
@@ -123,17 +141,7 @@ pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateE
         ));
     }
 
-    let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
-
-    return serenity::CreateEmbed::default()
-        .title(title)
-        .url(format!(
-            "{CATALOGUE_OF_LIFE_TAXON_URL}{}",
-            moth.catalogue_of_life_taxon_id
-        ))
-        .fields(fields)
-        .thumbnail(thumbnail_url)
-        .footer(footer);
+    return fields;
 }
 
 pub fn assemble_paginated_moth_search_embed<'a>(
@@ -188,7 +196,6 @@ pub fn assemble_paginated_moth_search_embed<'a>(
         .description(moths.join("\n"));
 }
 
-const MAX_FIELD_SIZE: usize = 1024;
 fn create_sized_fields<'a>(
     field_name: &'a str,
     field_contents_split: Vec<String>,
@@ -201,11 +208,11 @@ fn create_sized_fields<'a>(
     let mut current_field_content = Vec::new();
 
     for field_content in field_contents_split {
-        if field_content.len() > MAX_FIELD_SIZE {
+        if field_content.len() > MAX_FIELD_LENGTH {
             continue;
         }
 
-        if current_field_size + field_content.len() + delimiter.len() > MAX_FIELD_SIZE {
+        if current_field_size + field_content.len() + delimiter.len() > MAX_FIELD_LENGTH {
             let field_name = match field_count {
                 0 => field_name,
                 _ => "",
@@ -225,4 +232,31 @@ fn create_sized_fields<'a>(
     }
 
     return fields;
+}
+
+#[tokio::test]
+async fn ensure_embed_field_limits() {
+    const MAX_FIELD_COUNT: usize = 25;
+
+    let data = mothy_core::moth_data::moth_data_init().unwrap();
+    for (i, moth) in data.moth_data.iter().enumerate() {
+        dbg!(i, &moth.catalogue_of_life_taxon_id);
+
+        let embed_fields = assemble_moth_embed_fields(
+            &moth,
+            Err(Error::Custom("API requests disabled in tests".into())),
+            Err(Error::Custom("API requests disabled in tests".into())),
+        )
+        .await;
+
+        assert!(embed_fields.len() <= MAX_FIELD_COUNT);
+        for embed_field in &embed_fields {
+            assert!(embed_field.1.len() <= MAX_FIELD_LENGTH)
+        }
+        let all_fields_length = embed_fields
+            .iter()
+            .map(|x| x.0.len() + x.1.len())
+            .sum::<usize>();
+        assert!(all_fields_length <= serenity::EMBED_MAX_LENGTH);
+    }
 }
