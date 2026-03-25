@@ -230,6 +230,13 @@ fn create_sized_fields<'a>(
             current_field_content.push(field_content);
         }
     }
+    if current_field_content.len() > 0 {
+        fields.push((
+            field_name.to_string(),
+            current_field_content.join(delimiter),
+            false,
+        ));
+    }
 
     return fields;
 }
