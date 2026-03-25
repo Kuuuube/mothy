@@ -1,38 +1,39 @@
 use crate::Data;
 
-use std::fmt::Write;
+// use std::fmt::Write;
 use std::sync::Arc;
 
 use ::serenity::all::GenericChannelId;
-use mothy_ansi::{HI_GREEN, RED, RESET};
-use serenity::all::{
-    AutoArchiveDuration, ChannelType, Context, ForumLayoutType, GuildId, PermissionOverwrite,
-    PermissionOverwriteType, Permissions, SortOrder, User, UserId,
-};
+// use mothy_ansi::{HI_GREEN, RED, RESET};
+use serenity::all::{Context, GuildId};
+// use serenity::all::{
+    // AutoArchiveDuration, ChannelType, Context, ForumLayoutType, GuildId, PermissionOverwrite,
+    // PermissionOverwriteType, Permissions, SortOrder, User, UserId,
+// };
 
 // this function serves to help reduce the magic usage of to_user, serenity no longer
 // iterates through all caches to get the information, and that was poor anyway,
 // almost all code can be adjusted to prevent the iteration through all caches.
-pub async fn get_user(ctx: &Context, guild_id: GuildId, user_id: UserId) -> Option<User> {
-    // guild cache should always be present, though, i should handle it anyway.
-    let cached_user = {
-        let guild = ctx.cache.guild(guild_id).unwrap();
-        guild.members.get(&user_id).map(|m| m.user.clone())
-    };
+// pub async fn get_user(ctx: &Context, guild_id: GuildId, user_id: UserId) -> Option<User> {
+//     // guild cache should always be present, though, i should handle it anyway.
+//     let cached_user = {
+//         let guild = ctx.cache.guild(guild_id).unwrap();
+//         guild.members.get(&user_id).map(|m| m.user.clone())
+//     };
 
-    if let Some(user) = cached_user {
-        Some(user)
-    } else {
-        // uses temp_cache (if the feature is enabled)
-        // otherwise does a http call.
-        user_id.to_user(ctx).await.ok()
-    }
-}
+//     if let Some(user) = cached_user {
+//         Some(user)
+//     } else {
+//         // uses temp_cache (if the feature is enabled)
+//         // otherwise does a http call.
+//         user_id.to_user(ctx).await.ok()
+//     }
+// }
 
 // Helper function for getting the guild name override or guild name even if None.
 pub fn get_guild_name_override(
     ctx: &Context,
-    data: &Arc<Data>,
+    _: &Arc<Data>,
     guild_id: Option<GuildId>,
 ) -> String {
     if guild_id.is_none() {
@@ -116,205 +117,205 @@ fn retrieve_cached_name(
     }
 }
 
-#[must_use]
-pub fn channel_type_to_string(channel_type: ChannelType) -> String {
-    match channel_type {
-        ChannelType::Text => String::from("Text"),
-        ChannelType::Private => String::from("Private"),
-        ChannelType::Voice => String::from("Voice"),
-        ChannelType::GroupDm => String::from("GroupDm"),
-        ChannelType::Category => String::from("Category"),
-        ChannelType::News => String::from("News"),
-        ChannelType::NewsThread => String::from("NewsThread"),
-        ChannelType::PublicThread => String::from("PublicThread"),
-        ChannelType::PrivateThread => String::from("PrivateThread"),
-        ChannelType::Stage => String::from("Stage"),
-        ChannelType::Directory => String::from("Directory"),
-        ChannelType::Forum => String::from("Forum"),
-        _ => format!("Unknown({})", channel_type.0),
-    }
-}
+// #[must_use]
+// pub fn channel_type_to_string(channel_type: ChannelType) -> String {
+//     match channel_type {
+//         ChannelType::Text => String::from("Text"),
+//         ChannelType::Private => String::from("Private"),
+//         ChannelType::Voice => String::from("Voice"),
+//         ChannelType::GroupDm => String::from("GroupDm"),
+//         ChannelType::Category => String::from("Category"),
+//         ChannelType::News => String::from("News"),
+//         ChannelType::NewsThread => String::from("NewsThread"),
+//         ChannelType::PublicThread => String::from("PublicThread"),
+//         ChannelType::PrivateThread => String::from("PrivateThread"),
+//         ChannelType::Stage => String::from("Stage"),
+//         ChannelType::Directory => String::from("Directory"),
+//         ChannelType::Forum => String::from("Forum"),
+//         _ => format!("Unknown({})", channel_type.0),
+//     }
+// }
 
-#[must_use]
-pub fn overwrite_to_string(overwrite: PermissionOverwriteType) -> String {
-    match overwrite {
-        PermissionOverwriteType::Member(_) => String::from("Member"),
-        PermissionOverwriteType::Role(_) => String::from("Role"),
-        _ => String::from("?"),
-    }
-}
+// #[must_use]
+// pub fn overwrite_to_string(overwrite: PermissionOverwriteType) -> String {
+//     match overwrite {
+//         PermissionOverwriteType::Member(_) => String::from("Member"),
+//         PermissionOverwriteType::Role(_) => String::from("Role"),
+//         _ => String::from("?"),
+//     }
+// }
 
-#[must_use]
-pub fn auto_archive_duration_to_string(duration: AutoArchiveDuration) -> String {
-    match duration {
-        AutoArchiveDuration::None => String::from("None"),
-        AutoArchiveDuration::OneHour => String::from("1 hour"),
-        AutoArchiveDuration::OneDay => String::from("1 day"),
-        AutoArchiveDuration::ThreeDays => String::from("3 days"),
-        AutoArchiveDuration::OneWeek => String::from("1 week"),
-        _ => format!("Unknown({})", duration.0),
-    }
-}
+// #[must_use]
+// pub fn auto_archive_duration_to_string(duration: AutoArchiveDuration) -> String {
+//     match duration {
+//         AutoArchiveDuration::None => String::from("None"),
+//         AutoArchiveDuration::OneHour => String::from("1 hour"),
+//         AutoArchiveDuration::OneDay => String::from("1 day"),
+//         AutoArchiveDuration::ThreeDays => String::from("3 days"),
+//         AutoArchiveDuration::OneWeek => String::from("1 week"),
+//         _ => format!("Unknown({})", duration.0),
+//     }
+// }
 
-#[must_use]
-pub fn forum_layout_to_string(layout_type: ForumLayoutType) -> String {
-    match layout_type {
-        ForumLayoutType::NotSet => String::from("Not Set"),
-        ForumLayoutType::ListView => String::from("List View"),
-        ForumLayoutType::GalleryView => String::from("Gallery View"),
-        _ => format!("Unknown({})", layout_type.0),
-    }
-}
+// #[must_use]
+// pub fn forum_layout_to_string(layout_type: ForumLayoutType) -> String {
+//     match layout_type {
+//         ForumLayoutType::NotSet => String::from("Not Set"),
+//         ForumLayoutType::ListView => String::from("List View"),
+//         ForumLayoutType::GalleryView => String::from("Gallery View"),
+//         _ => format!("Unknown({})", layout_type.0),
+//     }
+// }
 
-#[must_use]
-pub fn sort_order_to_string(sort_order: SortOrder) -> String {
-    match sort_order {
-        SortOrder::LatestActivity => String::from("Latest Activity"),
-        SortOrder::CreationDate => String::from("Creation Date"),
-        _ => format!("Unknown({})", sort_order.0),
-    }
-}
+// #[must_use]
+// pub fn sort_order_to_string(sort_order: SortOrder) -> String {
+//     match sort_order {
+//         SortOrder::LatestActivity => String::from("Latest Activity"),
+//         SortOrder::CreationDate => String::from("Creation Date"),
+//         _ => format!("Unknown({})", sort_order.0),
+//     }
+// }
 
-pub async fn get_permission_changes(
-    ctx: &Context,
-    guild_id: GuildId,
-    old_allow: Permissions,
-    new_allow: Permissions,
-    old_deny: Permissions,
-    new_deny: Permissions,
-    kind: PermissionOverwriteType,
-) -> String {
-    let name = match kind {
-        PermissionOverwriteType::Member(user_id) => match get_user(ctx, guild_id, user_id).await {
-            Some(user) => user.tag(),
-            None => String::from("Unknown User"),
-        },
-        PermissionOverwriteType::Role(role_id) => ctx
-            .cache
-            .guild(guild_id)
-            .unwrap()
-            .roles
-            .get(&role_id)
-            .map_or_else(|| "Unknown Role".to_string(), |role| role.name.to_string()),
-        _ => String::from("Unknown"),
-    };
+// pub async fn get_permission_changes(
+//     ctx: &Context,
+//     guild_id: GuildId,
+//     old_allow: Permissions,
+//     new_allow: Permissions,
+//     old_deny: Permissions,
+//     new_deny: Permissions,
+//     kind: PermissionOverwriteType,
+// ) -> String {
+//     let name = match kind {
+//         PermissionOverwriteType::Member(user_id) => match get_user(ctx, guild_id, user_id).await {
+//             Some(user) => user.tag(),
+//             None => String::from("Unknown User"),
+//         },
+//         PermissionOverwriteType::Role(role_id) => ctx
+//             .cache
+//             .guild(guild_id)
+//             .unwrap()
+//             .roles
+//             .get(&role_id)
+//             .map_or_else(|| "Unknown Role".to_string(), |role| role.name.to_string()),
+//         _ => String::from("Unknown"),
+//     };
 
-    let mut changes_str = String::new();
-    let kind_string = overwrite_to_string(kind);
-    if old_allow != new_allow || old_deny != new_deny {
-        writeln!(
-            changes_str,
-            "Permission override for {name} ({kind_string}) changed!"
-        )
-        .unwrap();
+//     let mut changes_str = String::new();
+//     let kind_string = overwrite_to_string(kind);
+//     if old_allow != new_allow || old_deny != new_deny {
+//         writeln!(
+//             changes_str,
+//             "Permission override for {name} ({kind_string}) changed!"
+//         )
+//         .unwrap();
 
-        let allow_changes_detail = get_permission_changes_detail(old_allow, new_allow, true);
-        let deny_changes_detail = get_permission_changes_detail(old_deny, new_deny, false);
+//         let allow_changes_detail = get_permission_changes_detail(old_allow, new_allow, true);
+//         let deny_changes_detail = get_permission_changes_detail(old_deny, new_deny, false);
 
-        if !allow_changes_detail.is_empty() {
-            writeln!(changes_str, "allow:").unwrap();
-            write!(changes_str, "{}", &allow_changes_detail).unwrap();
-        }
+//         if !allow_changes_detail.is_empty() {
+//             writeln!(changes_str, "allow:").unwrap();
+//             write!(changes_str, "{}", &allow_changes_detail).unwrap();
+//         }
 
-        if !deny_changes_detail.is_empty() {
-            writeln!(changes_str, "deny:").unwrap();
-            write!(changes_str, "{}", &deny_changes_detail).unwrap();
-        }
-    }
+//         if !deny_changes_detail.is_empty() {
+//             writeln!(changes_str, "deny:").unwrap();
+//             write!(changes_str, "{}", &deny_changes_detail).unwrap();
+//         }
+//     }
 
-    changes_str
-}
+//     changes_str
+// }
 
-#[must_use]
-pub fn get_permission_changes_detail(old: Permissions, new: Permissions, allow: bool) -> String {
-    let mut changes_str = String::new();
-    let added_color = if allow { HI_GREEN } else { RED };
-    let removed_color = if allow { RED } else { HI_GREEN };
+// #[must_use]
+// pub fn get_permission_changes_detail(old: Permissions, new: Permissions, allow: bool) -> String {
+//     let mut changes_str = String::new();
+//     let added_color = if allow { HI_GREEN } else { RED };
+//     let removed_color = if allow { RED } else { HI_GREEN };
 
-    let added_perms: Vec<String> = {
-        let mut added = Vec::new();
-        for permission in Permissions::all().iter() {
-            let permission_name = permission.to_string();
-            if new.contains(permission) && !old.contains(permission) {
-                added.push(permission_name);
-            }
-        }
-        added
-    };
+//     let added_perms: Vec<String> = {
+//         let mut added = Vec::new();
+//         for permission in Permissions::all().iter() {
+//             let permission_name = permission.to_string();
+//             if new.contains(permission) && !old.contains(permission) {
+//                 added.push(permission_name);
+//             }
+//         }
+//         added
+//     };
 
-    let removed_perms: Vec<String> = {
-        let mut removed = Vec::new();
-        for permission in Permissions::all().iter() {
-            let permission_name = permission.to_string();
-            if !new.contains(permission) && old.contains(permission) {
-                removed.push(permission_name);
-            }
-        }
-        removed
-    };
+//     let removed_perms: Vec<String> = {
+//         let mut removed = Vec::new();
+//         for permission in Permissions::all().iter() {
+//             let permission_name = permission.to_string();
+//             if !new.contains(permission) && old.contains(permission) {
+//                 removed.push(permission_name);
+//             }
+//         }
+//         removed
+//     };
 
-    if !added_perms.is_empty() {
-        for perm in &added_perms {
-            writeln!(changes_str, "{added_color}+ {perm}{RESET}").unwrap();
-        }
-    }
+//     if !added_perms.is_empty() {
+//         for perm in &added_perms {
+//             writeln!(changes_str, "{added_color}+ {perm}{RESET}").unwrap();
+//         }
+//     }
 
-    if !removed_perms.is_empty() {
-        for perm in &removed_perms {
-            writeln!(changes_str, "{removed_color}- {perm}{RESET}").unwrap();
-        }
-    }
+//     if !removed_perms.is_empty() {
+//         for perm in &removed_perms {
+//             writeln!(changes_str, "{removed_color}- {perm}{RESET}").unwrap();
+//         }
+//     }
 
-    changes_str
-}
+//     changes_str
+// }
 
-pub async fn overwrite_removal(
-    ctx: &Context,
-    guild_id: GuildId,
-    overwrite: &PermissionOverwrite,
-) -> String {
-    let name = match overwrite.kind {
-        PermissionOverwriteType::Member(user_id) => match get_user(ctx, guild_id, user_id).await {
-            Some(user) => user.tag(),
-            None => String::from("Unknown User"),
-        },
-        PermissionOverwriteType::Role(role_id) => ctx
-            .cache
-            .guild(guild_id)
-            .unwrap()
-            .roles
-            .get(&role_id)
-            .map_or_else(|| "Unknown Role".to_string(), |role| role.name.to_string()),
-        _ => String::from("Unknown"),
-    };
+// pub async fn overwrite_removal(
+//     ctx: &Context,
+//     guild_id: GuildId,
+//     overwrite: &PermissionOverwrite,
+// ) -> String {
+//     let name = match overwrite.kind {
+//         PermissionOverwriteType::Member(user_id) => match get_user(ctx, guild_id, user_id).await {
+//             Some(user) => user.tag(),
+//             None => String::from("Unknown User"),
+//         },
+//         PermissionOverwriteType::Role(role_id) => ctx
+//             .cache
+//             .guild(guild_id)
+//             .unwrap()
+//             .roles
+//             .get(&role_id)
+//             .map_or_else(|| "Unknown Role".to_string(), |role| role.name.to_string()),
+//         _ => String::from("Unknown"),
+//     };
 
-    let mut changes_str = String::new();
-    let kind_string = overwrite_to_string(overwrite.kind);
-    writeln!(
-        changes_str,
-        "Permission override for {name} ({kind_string}) was removed!"
-    )
-    .unwrap();
+//     let mut changes_str = String::new();
+//     let kind_string = overwrite_to_string(overwrite.kind);
+//     writeln!(
+//         changes_str,
+//         "Permission override for {name} ({kind_string}) was removed!"
+//     )
+//     .unwrap();
 
-    let mut allowed_str = String::new();
-    let mut denied_str = String::new();
-    for allowed in overwrite.allow {
-        writeln!(allowed_str, "{HI_GREEN}+ {allowed}{RESET}").unwrap();
-    }
+//     let mut allowed_str = String::new();
+//     let mut denied_str = String::new();
+//     for allowed in overwrite.allow {
+//         writeln!(allowed_str, "{HI_GREEN}+ {allowed}{RESET}").unwrap();
+//     }
 
-    for denied in overwrite.deny {
-        writeln!(denied_str, "{RED}+ {denied}{RESET}").unwrap();
-    }
+//     for denied in overwrite.deny {
+//         writeln!(denied_str, "{RED}+ {denied}{RESET}").unwrap();
+//     }
 
-    if !allowed_str.is_empty() {
-        changes_str.push_str("allowed:\n");
-        changes_str.push_str(&allowed_str);
-    }
+//     if !allowed_str.is_empty() {
+//         changes_str.push_str("allowed:\n");
+//         changes_str.push_str(&allowed_str);
+//     }
 
-    if !denied_str.is_empty() {
-        changes_str.push_str("denied:\n");
-        changes_str.push_str(&denied_str);
-    }
+//     if !denied_str.is_empty() {
+//         changes_str.push_str("denied:\n");
+//         changes_str.push_str(&denied_str);
+//     }
 
-    changes_str
-}
+//     changes_str
+// }
