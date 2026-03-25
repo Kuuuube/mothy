@@ -7,8 +7,8 @@ use ::serenity::all::GenericChannelId;
 // use mothy_ansi::{HI_GREEN, RED, RESET};
 use serenity::all::{Context, GuildId};
 // use serenity::all::{
-    // AutoArchiveDuration, ChannelType, Context, ForumLayoutType, GuildId, PermissionOverwrite,
-    // PermissionOverwriteType, Permissions, SortOrder, User, UserId,
+// AutoArchiveDuration, ChannelType, Context, ForumLayoutType, GuildId, PermissionOverwrite,
+// PermissionOverwriteType, Permissions, SortOrder, User, UserId,
 // };
 
 // this function serves to help reduce the magic usage of to_user, serenity no longer
@@ -31,11 +31,7 @@ use serenity::all::{Context, GuildId};
 // }
 
 // Helper function for getting the guild name override or guild name even if None.
-pub fn get_guild_name_override(
-    ctx: &Context,
-    _: &Arc<Data>,
-    guild_id: Option<GuildId>,
-) -> String {
+pub fn get_guild_name_override(ctx: &Context, _: &Arc<Data>, guild_id: Option<GuildId>) -> String {
     if guild_id.is_none() {
         return get_guild_name(ctx, guild_id);
     }
