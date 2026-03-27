@@ -1,8 +1,8 @@
-use mothy_ansi::{CYAN, HI_BLACK, HI_RED, RESET};
+use mothy_ansi::{CYAN, DIM, HI_BLACK, HI_RED, RESET};
 use mothy_core::{error::Error, structs::Data};
 use serenity::all::{
     Context, CreateAllowedMentions, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter,
-    CreateMessage, Message, Role, Timestamp,
+    CreateMessage, GenericChannelId, GuildId, Message, MessageId, Role, Timestamp,
 };
 use std::{fmt::Write, sync::Arc};
 
@@ -226,6 +226,48 @@ async fn image_spambot_filter(
                 .await;
         }
     }
+}
+
+pub async fn on_message_delete(
+    ctx: &Context,
+    channel_id: GenericChannelId,
+    deleted_message_id: MessageId,
+    guild_id: Option<GuildId>,
+    data: Arc<Data>,
+) -> Result<(), Error> {
+    let guild_name = get_guild_name_override(ctx, &data, guild_id);
+
+    let channel_name = get_channel_name(ctx, guild_id, channel_id).await;
+
+    // This works but might not be optimal.
+    let message = ctx
+        .cache
+        .message(channel_id, deleted_message_id)
+        .map(|message_ref| message_ref.clone());
+
+    if let Some(message) = message {
+        let user_name = message.author.tag();
+        let content = message.content.clone();
+
+        let (attachments_fmt, embeds_fmt) = attachments_embed_fmt(&message);
+
+        println!(
+            "{HI_RED}{DIM}[{}] [#{}] A message from {RESET}{}{HI_RED}{DIM} was deleted: \
+             {}{}{}{RESET}",
+            guild_name,
+            channel_name,
+            user_name,
+            content,
+            attachments_fmt.as_deref().unwrap_or(""),
+            embeds_fmt.as_deref().unwrap_or("")
+        );
+    } else {
+        println!(
+            "{HI_RED}{DIM}A message (ID:{deleted_message_id}) was deleted but was not in \
+             cache{RESET}"
+        );
+    }
+    Ok(())
 }
 
 #[must_use]

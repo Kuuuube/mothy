@@ -41,6 +41,15 @@ pub async fn event_handler(ctx: &serenity::Context, event: &FullEvent) -> Result
         FullEvent::Message { new_message, .. } => {
             messages::on_message(ctx, new_message, data).await?;
         }
+        FullEvent::MessageDelete {
+            channel_id,
+            deleted_message_id,
+            guild_id,
+            ..
+        } => {
+            messages::on_message_delete(ctx, *channel_id, *deleted_message_id, *guild_id, data)
+                .await?;
+        }
         FullEvent::GuildMemberAddition { new_member, .. } => {
             join_leave::guild_member_addition(ctx, new_member, data).await?;
         }
