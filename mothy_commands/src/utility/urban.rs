@@ -42,7 +42,7 @@ pub async fn urban(
     let reqwest = ReqwestClient::new();
     let response = reqwest
         .get("https://api.urbandictionary.com/v0/define")
-        .query(&[("term", term.clone())])
+        .query(&[("term", &term)])
         .send()
         .await?
         .json::<Respon>()

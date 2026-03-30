@@ -237,7 +237,7 @@ pub async fn moth_search(
     let bot_message = ctx
         .send(
             poise::CreateReply::default()
-                .embed(embed.clone())
+                .embed(embed)
                 .components(&[get_pagination_buttons(page_number, pagecount)]),
         )
         .await?;

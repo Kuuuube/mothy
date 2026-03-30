@@ -32,10 +32,10 @@ pub async fn james_score(ctx: Context<'_>) -> Result<(), Error> {
     );
     let description_line_0 = format!(
         "**{}** • **{}** • **{:.2}%** • {} • {}",
-        format_score_rank(score.rank.clone()),
+        format_score_rank(&score.rank),
         format_mods_string(&score.mods, &game_version),
         score.accuracy * 100.0,
-        format_score_date(score.ended_at.clone()),
+        format_score_date(&score.ended_at),
         game_version
     );
     let description_line_1 = format!(
@@ -66,9 +66,9 @@ pub async fn james_score(ctx: Context<'_>) -> Result<(), Error> {
     );
     let embed = serenity::CreateEmbed::default()
         .title(title)
-        .url(score.beatmap.url.clone())
+        .url(&score.beatmap.url)
         .description(description)
-        .thumbnail(score.beatmap.beatmapset.covers.list.clone());
+        .thumbnail(&score.beatmap.beatmapset.covers.list);
     ctx.send(poise::CreateReply::default().embed(embed)).await?;
 
     Ok(())
@@ -97,11 +97,11 @@ fn format_mods_string(mods: &Vec<Mod>, game_version: &String) -> String {
     return mods_string;
 }
 
-fn format_score_date(date: String) -> String {
+fn format_score_date(date: &str) -> String {
     return date.replace("T", " ").replace("Z", "");
 }
 
-fn format_score_rank(rank: String) -> String {
+fn format_score_rank(rank: &str) -> String {
     return rank.replace("H", "").replace("X", "SS");
 }
 
