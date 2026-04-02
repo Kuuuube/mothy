@@ -166,7 +166,7 @@ pub async fn moth_search(
                 .find(|moth| &moth.catalogue_of_life_taxon_id == found_synonym_id)
         } else {
             moth_data.iter().find(|moth| {
-                if !(moth.classification.genus.to_lowercase() == genus_some.to_lowercase()) {
+                if moth.classification.genus.to_lowercase() != genus_some.to_lowercase()  {
                     return false;
                 }
                 if moth.classification.specific.to_lowercase() == specific_some.to_lowercase()
@@ -187,7 +187,7 @@ pub async fn moth_search(
                         moth.classification.genus, moth.classification.specific, moth_subspecific
                     ));
                 }
-                return false;
+                false
             })
         };
 
@@ -198,10 +198,13 @@ pub async fn moth_search(
             let mut capitalized_scientific_name = lowercase_scientific_name;
             capitalized_scientific_name
                 .get_mut(0..1)
-                .and_then(|x| Some(x.make_ascii_uppercase()));
+                .map(|x| {
+                    let _: () = x.make_ascii_uppercase();
+                    ()
+                });
 
             let mut embed_text = format!("Failed to find moth `{capitalized_scientific_name}`.");
-            if possible_subspecific_as_specific.len() > 0 {
+            if !possible_subspecific_as_specific.is_empty() {
                 let formatted_subspecific_as_specific = possible_subspecific_as_specific
                     .iter()
                     .map(|x| format!("`{x}`"))
@@ -232,7 +235,7 @@ pub async fn moth_search(
             {
                 return false;
             }
-            return true;
+            true
         })
         .collect();
 
@@ -262,7 +265,7 @@ pub async fn moth_search(
     let mut current_mode = MothSearchMode::Pagination;
     let mut page_number = 0;
     let mut selected_moth = 0;
-    let pagecount = (moth_count + MOTHS_PER_PAGE - 1) / MOTHS_PER_PAGE; // int division that rounds up
+    let pagecount = moth_count.div_ceil(MOTHS_PER_PAGE); // int division that rounds up
     let embed = assemble_paginated_moth_search_embed(
         &moths_found,
         moth_count,
@@ -279,7 +282,7 @@ pub async fn moth_search(
         )
         .await?;
 
-    let mut interaction_collector = ComponentInteractionCollector::new(&ctx.serenity_context())
+    let mut interaction_collector = ComponentInteractionCollector::new(ctx.serenity_context())
         .timeout(Duration::from_secs(MOTH_SEARCH_INTERACTION_TIMEOUT))
         .message_id(bot_message.message().await?.id)
         .stream();
@@ -287,7 +290,7 @@ pub async fn moth_search(
     while let Some(interaction) = interaction_collector.next().await {
         // this interactions's response may take longer than 3 seconds of compute, defer to give us up to 15 minutes
         // exclude modal interactions
-        if interaction.data.custom_id.to_string() != BUTTON_ID_PAGINATION_GO_TO_PAGE {
+        if interaction.data.custom_id != BUTTON_ID_PAGINATION_GO_TO_PAGE {
             interaction
                 .defer(ctx.http())
                 .await
@@ -333,7 +336,7 @@ pub async fn moth_search(
                     interaction.quick_modal(ctx.serenity_context(), modal).await
                     && let Some(data) = data_option
                 {
-                    if let Some(input_page_number_string) = data.inputs.get(0)
+                    if let Some(input_page_number_string) = data.inputs.first()
                         && let Ok(input_page_number) = input_page_number_string.parse::<usize>()
                         && input_page_number <= pagecount
                         && input_page_number >= 1
@@ -488,9 +491,9 @@ fn get_pagination_buttons<'a>(
             id: EmojiId::new(1485048273789255841),
             name: None,
         });
-    return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
+    serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
         vec![back_button, select_mode_button, forward_button, goto_button].into(),
-    ));
+    ))
 }
 
 fn get_select_buttons<'a>() -> serenity::CreateComponent<'a> {
@@ -522,7 +525,7 @@ fn get_select_buttons<'a>() -> serenity::CreateComponent<'a> {
             id: EmojiId::new(1483967182642745375),
             name: None,
         });
-    return serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
+    serenity::CreateComponent::ActionRow(serenity::CreateActionRow::Buttons(
         vec![
             back_button,
             select_mode_button,
@@ -530,7 +533,7 @@ fn get_select_buttons<'a>() -> serenity::CreateComponent<'a> {
             back_to_pagination,
         ]
         .into(),
-    ));
+    ))
 }
 
 #[must_use]

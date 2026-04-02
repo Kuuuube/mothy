@@ -77,7 +77,7 @@ pub async fn guild_member_removal(
         user.id
     );
 
-    if let Some(join_logs_channel) = data.config.logs.mothy_join_logs_channel.get(&guild_id) {
+    if let Some(join_logs_channel) = data.config.logs.mothy_join_logs_channel.get(guild_id) {
         let embed = CreateEmbed::new()
             .author(
                 CreateEmbedAuthor::new(&user.name).icon_url(user.avatar_url().unwrap_or_default()),
@@ -104,7 +104,7 @@ fn get_member_joined_at(new_member: &Member) -> Option<String> {
     )?;
     let time_since_adjusted = time_since.with_year(time_since.year() - 1970)?;
 
-    return Some(format!("{}", truncate_datetime_string(time_since_adjusted)));
+    Some(truncate_datetime_string(time_since_adjusted).to_string())
 }
 
 fn truncate_datetime_string(datetime: DateTime<Utc>) -> String {
@@ -136,5 +136,5 @@ fn truncate_datetime_string(datetime: DateTime<Utc>) -> String {
         datetime_strings.push(format!("{}s", second));
     }
 
-    return datetime_strings.join(" ");
+    datetime_strings.join(" ")
 }

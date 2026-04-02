@@ -11,10 +11,10 @@ use crate::helper::{get_channel_name, get_guild_name_override};
 pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) -> Result<(), Error> {
     let dont_print = false;
     let content = {
-        let maybe_flagged = &msg.content;
+        
         // moth_filter::filter_content(&msg.content, &config.badlist, &config.fixlist);
 
-        maybe_flagged
+        &msg.content
     };
 
     let guild_id = msg.guild_id;
@@ -176,7 +176,7 @@ async fn image_spambot_filter(
             .mothy_blacklist_logs_channel
             .get(&msg.guild_id.unwrap_or_default())
         {
-            let message_content_format = if msg.content.len() > 0 {
+            let message_content_format = if !msg.content.is_empty() {
                 format!(
                     "```\n{}\n```",
                     &msg.content_safe(&ctx.cache).replace("`", "\\`")
@@ -204,7 +204,7 @@ async fn image_spambot_filter(
                 )
                 .field(
                     "Reason",
-                    format!("Possible Image Spambot Detected"),
+                    "Possible Image Spambot Detected".to_string(),
                     true,
                 )
                 .field(

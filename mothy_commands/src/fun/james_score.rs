@@ -76,33 +76,33 @@ pub async fn james_score(ctx: Context<'_>) -> Result<(), Error> {
 
 fn game_version(mods: &Vec<Mod>) -> String {
     for osu_mod in mods {
-        if osu_mod.acronym == "CL".to_string() {
+        if osu_mod.acronym == "CL" {
             return "Stable".to_string();
         }
     }
-    return "Lazer".to_string();
+    "Lazer".to_string()
 }
 
 fn format_mods_string(mods: &Vec<Mod>, game_version: &String) -> String {
-    if mods.len() == 0 || (game_version == "Stable" && mods.len() == 1) {
+    if mods.is_empty() || (game_version == "Stable" && mods.len() == 1) {
         return "NM".to_string();
     }
     let mut mods_string = "+".to_string();
     for osu_mod in mods {
-        if osu_mod.acronym == "CL".to_string() {
+        if osu_mod.acronym == "CL" {
             continue;
         }
         mods_string += &osu_mod.acronym;
     }
-    return mods_string;
+    mods_string
 }
 
 fn format_score_date(date: &str) -> String {
-    return date.replace("T", " ").replace("Z", "");
+    date.replace("T", " ").replace("Z", "")
 }
 
 fn format_score_rank(rank: &str) -> String {
-    return rank.replace("H", "").replace("X", "SS");
+    rank.replace("H", "").replace("X", "SS")
 }
 
 fn format_duration_secs(duration: u64) -> String {
@@ -112,7 +112,7 @@ fn format_duration_secs(duration: u64) -> String {
     if duration > 3600 {
         return format!("{}:{}:{}", hours, minutes, seconds);
     }
-    return format!("{}:{}", minutes, seconds);
+    format!("{}:{}", minutes, seconds)
 }
 
 #[must_use]

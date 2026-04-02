@@ -43,7 +43,7 @@ pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateE
 
     let footer = serenity::CreateEmbedFooter::new(moth.catalogue_of_life_taxon_id.clone());
 
-    return serenity::CreateEmbed::default()
+    serenity::CreateEmbed::default()
         .title(title)
         .url(format!(
             "{CATALOGUE_OF_LIFE_TAXON_URL}{}",
@@ -51,7 +51,7 @@ pub async fn assemble_moth_embed<'a>(moth: &moth_filter::SpeciesData) -> CreateE
         ))
         .fields(fields)
         .thumbnail(thumbnail_url)
-        .footer(footer);
+        .footer(footer)
 }
 
 async fn assemble_moth_embed_fields(
@@ -133,7 +133,7 @@ async fn assemble_moth_embed_fields(
         more_info_field_urls.push(format!("[GBIF]({GBIF_SPECIES_URL}{})", gbif_data.usage_key));
     }
 
-    if more_info_field_urls.len() > 0 {
+    if !more_info_field_urls.is_empty() {
         fields.push((
             "More Info".to_string(),
             more_info_field_urls.join("\n"),
@@ -141,7 +141,7 @@ async fn assemble_moth_embed_fields(
         ));
     }
 
-    return fields;
+    fields
 }
 
 pub fn assemble_paginated_moth_search_embed<'a>(
@@ -184,20 +184,19 @@ pub fn assemble_paginated_moth_search_embed<'a>(
         })
         .collect::<Vec<String>>();
 
-    if let Some(selected_moth) = selected_moth {
-        if let Some(moth_entry) = moths.get_mut(selected_moth) {
+    if let Some(selected_moth) = selected_moth
+        && let Some(moth_entry) = moths.get_mut(selected_moth) {
             *moth_entry = format!("**{moth_entry}** ⬅︎");
         }
-    }
 
-    return serenity::CreateEmbed::default()
+    serenity::CreateEmbed::default()
         .title(title)
         .footer(CreateEmbedFooter::new(footer))
-        .description(moths.join("\n"));
+        .description(moths.join("\n"))
 }
 
-fn create_sized_fields<'a>(
-    field_name: &'a str,
+fn create_sized_fields(
+    field_name: &str,
     field_contents_split: Vec<String>,
     delimiter: &str,
 ) -> Vec<(String, String, bool)> {
@@ -230,7 +229,7 @@ fn create_sized_fields<'a>(
             current_field_content.push(field_content);
         }
     }
-    if current_field_content.len() > 0 {
+    if !current_field_content.is_empty() {
         let field_name = match field_count {
             0 => field_name,
             _ => "",
@@ -242,7 +241,7 @@ fn create_sized_fields<'a>(
         ));
     }
 
-    return fields;
+    fields
 }
 
 #[tokio::test]

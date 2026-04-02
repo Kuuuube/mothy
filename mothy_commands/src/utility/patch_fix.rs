@@ -27,7 +27,7 @@ pub async fn patch_fix(
     if patch.size > EIGHT_MB {
         ctx.send(
             poise::CreateReply::new()
-                .content(format!("Attachment too large"))
+                .content("Attachment too large".to_string())
                 .allowed_mentions(mentions),
         )
         .await?;
@@ -39,7 +39,7 @@ pub async fn patch_fix(
         Err(_) => {
             ctx.send(
                 poise::CreateReply::new()
-                    .content(format!("Could not fix patch"))
+                    .content("Could not fix patch".to_string())
                     .allowed_mentions(mentions),
             )
             .await?;
@@ -56,7 +56,7 @@ pub async fn patch_fix(
 }
 
 fn fix_patch(patch_bytes: Vec<u8>) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-    return Ok(String::from_utf16(&vec_u8_to_u16_le(patch_bytes))?.replace("\r", ""));
+    Ok(String::from_utf16(&vec_u8_to_u16_le(patch_bytes))?.replace("\r", ""))
 }
 
 fn vec_u8_to_u16_le(vec_u8: Vec<u8>) -> Vec<u16> {
@@ -67,7 +67,7 @@ fn vec_u8_to_u16_le(vec_u8: Vec<u8>) -> Vec<u16> {
         vec_u16.push(u16::from_le_bytes(u8_pair));
     }
 
-    return vec_u16;
+    vec_u16
 }
 
 #[must_use]

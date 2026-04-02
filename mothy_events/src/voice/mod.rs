@@ -46,7 +46,9 @@ fn handle_join(new_voice_state: &'_ VoiceState) -> CreateEmbed<'_> {
     } else {
         ("Unknown".to_string(), None)
     };
-    let embed = CreateEmbed::new()
+    
+
+    CreateEmbed::new()
         .author(CreateEmbedAuthor::new(username).icon_url(avatar_url.unwrap_or_default()))
         .colour(POSITIVE_COLOR_HEX)
         .description(format!(
@@ -58,9 +60,7 @@ fn handle_join(new_voice_state: &'_ VoiceState) -> CreateEmbed<'_> {
         .footer(CreateEmbedFooter::new(format!(
             "ID: {}",
             new_voice_state.user_id
-        )));
-
-    return embed;
+        )))
 }
 
 fn handle_leave<'a>(old_voice_state: &VoiceState, new_voice_state: &VoiceState) -> CreateEmbed<'a> {
@@ -69,7 +69,9 @@ fn handle_leave<'a>(old_voice_state: &VoiceState, new_voice_state: &VoiceState) 
     } else {
         ("Unknown".to_string(), None)
     };
-    let embed = CreateEmbed::new()
+    
+
+    CreateEmbed::new()
         .author(CreateEmbedAuthor::new(username).icon_url(avatar_url.unwrap_or_default()))
         .colour(NEGATIVE_COLOR_HEX)
         .description(format!(
@@ -81,9 +83,7 @@ fn handle_leave<'a>(old_voice_state: &VoiceState, new_voice_state: &VoiceState) 
         .footer(CreateEmbedFooter::new(format!(
             "ID: {}",
             new_voice_state.user_id
-        )));
-
-    return embed;
+        )))
 }
 
 fn handle_switch<'a>(
@@ -95,7 +95,9 @@ fn handle_switch<'a>(
     } else {
         ("Unknown".to_string(), None)
     };
-    let embed = CreateEmbed::new()
+    
+
+    CreateEmbed::new()
         .author(CreateEmbedAuthor::new(username).icon_url(avatar_url.unwrap_or_default()))
         .colour(NEUTRAL_ACTION_COLOR_HEX)
         .description(format!(
@@ -108,7 +110,5 @@ fn handle_switch<'a>(
         .footer(CreateEmbedFooter::new(format!(
             "ID: {}",
             new_voice_state.user_id
-        )));
-
-    return embed;
+        )))
 }

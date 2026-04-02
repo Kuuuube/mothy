@@ -64,8 +64,8 @@ pub async fn urban(
         .url(&choice.permalink)
         .description(format!(
             "**Definition:**\n{}\n\n **Example:**\n{}\n\n",
-            inflate_links(&command_data, &choice.definition),
-            inflate_links(&command_data, &choice.example)
+            inflate_links(command_data, &choice.definition),
+            inflate_links(command_data, &choice.example)
         ))
         .field("👍", thumbs_up.as_str(), true)
         .field("👎", thumbs_down.as_str(), true);
@@ -76,9 +76,9 @@ pub async fn urban(
 }
 
 pub fn inflate_links<'a>(command_data: &CommandData, text: &'a str) -> std::borrow::Cow<'a, str> {
-    return command_data
+    command_data
         .urban_link_finder_regex
-        .replace_all(text, &command_data.urban_link_replacement);
+        .replace_all(text, &command_data.urban_link_replacement)
 }
 
 #[must_use]

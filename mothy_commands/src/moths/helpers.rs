@@ -4,12 +4,10 @@ const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
 
 pub fn get_moth_rank_vec(input_strings: &[Option<String>]) -> Vec<String> {
     let mut ranks_vec = Vec::new();
-    for input_string in input_strings {
-        if let Some(some) = input_string {
-            ranks_vec.push(some.to_string());
-        }
+    for some in input_strings.iter().flatten() {
+        ranks_vec.push(some.to_string());
     }
-    return ranks_vec;
+    ranks_vec
 }
 
 pub fn search_classification_valid<A: AsRef<str>, B: AsRef<str>>(
@@ -19,25 +17,25 @@ pub fn search_classification_valid<A: AsRef<str>, B: AsRef<str>>(
     if let Some(search_input_string) = &search_input {
         return check_against
             .as_ref()
-            .and_then(|check_against_string| {
+            .map(|check_against_string| {
                 let check_against_str: &str = check_against_string.as_ref();
                 let search_input_str: &str = search_input_string.as_ref();
-                Some(check_against_str.eq_ignore_ascii_case(search_input_str))
+                check_against_str.eq_ignore_ascii_case(search_input_str)
             })
             .unwrap_or(false); // search requested on classification but moth doesnt contain classification = invalid (`false`)
     }
-    return true; // no search requested (`search_input` == None)
+    true// no search requested (`search_input` == None)
 }
 
 pub fn assemble_scientific_name(genus: &str, specific: &str, subspecific: Option<&str>) -> String {
-    return format!(
+    format!(
         "{} {} {}",
         genus,
         specific,
-        subspecific.unwrap_or_default().to_string()
+        subspecific.unwrap_or_default()
     )
     .trim()
-    .to_string();
+    .to_string()
 }
 
 pub fn is_butterfly(
@@ -101,7 +99,7 @@ pub fn is_butterfly(
     {
         return true;
     }
-    return false;
+    false
 }
 
 #[test]

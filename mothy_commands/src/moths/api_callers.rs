@@ -47,7 +47,7 @@ pub async fn try_get_inaturalist_data(
         .json::<INaturalistResponse>()
         .await?;
 
-    if let Some(first_result) = response.results.get(0) {
+    if let Some(first_result) = response.results.first() {
         return Ok(INaturalistData {
             inaturalist_url: format!(
                 "https://www.inaturalist.org/taxa/{}",
@@ -63,9 +63,9 @@ pub async fn try_get_inaturalist_data(
             preferred_common_name: first_result.record.preferred_common_name.clone(),
         });
     }
-    return Err(Error::Custom(
+    Err(Error::Custom(
         format!("No iNaturalist results found for {species}").into(),
-    ));
+    ))
 }
 
 #[derive(Debug, Deserialize)]
@@ -102,7 +102,7 @@ pub async fn try_get_gbif_data(reqwest: &ReqwestClient, species: &str) -> Result
         });
     }
 
-    return Err(Error::Custom(
+    Err(Error::Custom(
         format!("No GBIF results found for {species}").into(),
-    ));
+    ))
 }

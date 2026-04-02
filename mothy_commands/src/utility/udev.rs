@@ -63,7 +63,7 @@ pub async fn generate_udev_hex(
 
         ctx.send(udev_reply(udev)).await?;
     } else {
-        ctx.send(poise::CreateReply::new().content(format!("Could not parse udev hex input")))
+        ctx.send(poise::CreateReply::new().content("Could not parse udev hex input".to_string()))
             .await?;
     }
 
@@ -106,7 +106,7 @@ fn udev_reply<'a>(udev: String) -> CreateReply<'a> {
         )
         .color(Colour(0x2ecc71));
 
-    return CreateReply::default().embed(embed).attachment(attachment);
+    CreateReply::default().embed(embed).attachment(attachment)
 }
 
 #[must_use]
