@@ -8,10 +8,6 @@ mod voice;
 
 pub struct Handler;
 
-const POSITIVE_COLOR_HEX: u32 = 0x43b582;
-const NEUTRAL_ACTION_COLOR_HEX: u32 = 0x7a4bb7;
-const NEGATIVE_COLOR_HEX: u32 = 0xff470f;
-
 #[serenity::async_trait]
 impl serenity::EventHandler for Handler {
     async fn dispatch(&self, ctx: &serenity::Context, event: &FullEvent) {

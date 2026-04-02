@@ -1,10 +1,10 @@
-use mothy_core::{error::Error, structs::Data};
+use mothy_core::{
+    NEGATIVE_COLOR_HEX, NEUTRAL_ACTION_COLOR_HEX, POSITIVE_COLOR_HEX, error::Error, structs::Data,
+};
 use serenity::all::{
     Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, Timestamp,
     VoiceState,
 };
-
-use crate::{NEGATIVE_COLOR_HEX, NEUTRAL_ACTION_COLOR_HEX, POSITIVE_COLOR_HEX};
 
 pub async fn voice_state_update(
     ctx: &Context,

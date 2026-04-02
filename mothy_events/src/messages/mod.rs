@@ -1,15 +1,12 @@
 use mothy_ansi::{CYAN, DIM, HI_BLACK, HI_RED, RESET};
-use mothy_core::{error::Error, structs::Data};
+use mothy_core::{NEGATIVE_COLOR_HEX, error::Error, structs::Data};
 use serenity::all::{
     Context, CreateAllowedMentions, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter,
     CreateMessage, GenericChannelId, GuildId, Message, MessageId, Role, Timestamp,
 };
 use std::{fmt::Write, sync::Arc};
 
-use crate::{
-    NEGATIVE_COLOR_HEX,
-    helper::{get_channel_name, get_guild_name_override},
-};
+use crate::helper::{get_channel_name, get_guild_name_override};
 
 pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) -> Result<(), Error> {
     let dont_print = false;

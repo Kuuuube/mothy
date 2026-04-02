@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Datelike, Timelike, Utc};
 use mothy_ansi::{RESET, YELLOW};
-use mothy_core::{error::Error, structs::Data};
+use mothy_core::{NEGATIVE_COLOR_HEX, POSITIVE_COLOR_HEX, error::Error, structs::Data};
 use serenity::all::{
     Context, CreateEmbed, CreateEmbedAuthor, CreateEmbedFooter, CreateMessage, GuildId, Member,
     Timestamp, User,
 };
 
-use crate::{NEGATIVE_COLOR_HEX, POSITIVE_COLOR_HEX, helper::get_guild_name_override};
+use crate::helper::get_guild_name_override;
 
 pub async fn guild_member_addition(
     ctx: &Context,
