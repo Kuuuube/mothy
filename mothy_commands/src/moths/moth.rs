@@ -1,3 +1,4 @@
+use mothy_core::NEGATIVE_COLOR_HEX;
 use std::time::Duration;
 
 use crate::{Context, Error, moths::embed_assemblers::*, moths::helpers::*};
@@ -6,7 +7,7 @@ use poise::serenity_prelude as serenity;
 
 use ::serenity::{
     all::{
-        ComponentInteractionCollector, CreateInputText, CreateInteractionResponse,
+        ComponentInteractionCollector, CreateEmbed, CreateInputText, CreateInteractionResponse,
         CreateInteractionResponseMessage, CreateQuickModal, EmojiId, InputTextStyle, QuickModal,
         ReactionType,
     },
@@ -59,6 +60,42 @@ pub async fn moth(ctx: Context<'_>) -> Result<(), Error> {
     let embed = assemble_moth_embed(moth).await;
     ctx.send(poise::CreateReply::default().embed(embed)).await?;
 
+    Ok(())
+}
+
+/// Find a random named moth
+#[poise::command(
+    rename = "moth-named",
+    prefix_command,
+    slash_command,
+    install_context = "Guild|User",
+    interaction_context = "Guild|BotDm|PrivateChannel",
+    category = "Moths",
+    user_cooldown = "10"
+)]
+pub async fn moth_named(ctx: Context<'_>) -> Result<(), Error> {
+    let data = ctx.data();
+
+    const MAX_TRIES: usize = 1000; // the chance this does not find a named moth in 1000 tries is about 0.000000679%
+    let mut i = 0;
+    while i < MAX_TRIES {
+        let moth = {
+            let mut rng = rand::rng();
+            data.moth_data.moth_data.choose(&mut rng).unwrap()
+        };
+        if moth.common_names.is_none() {
+            i += 1;
+            continue;
+        }
+        let embed = assemble_moth_embed(moth).await;
+        ctx.send(poise::CreateReply::default().embed(embed)).await?;
+        return Ok(());
+    }
+
+    let embed = CreateEmbed::new()
+        .description(format!("Failed to find named moth in {MAX_TRIES} tries."))
+        .color(NEGATIVE_COLOR_HEX);
+    ctx.send(poise::CreateReply::default().embed(embed)).await?;
     Ok(())
 }
 
@@ -497,6 +534,6 @@ fn get_select_buttons<'a>() -> serenity::CreateComponent<'a> {
 }
 
 #[must_use]
-pub fn commands() -> [crate::Command; 2] {
-    [moth(), moth_search()]
+pub fn commands() -> [crate::Command; 3] {
+    [moth(), moth_search(), moth_named()]
 }
