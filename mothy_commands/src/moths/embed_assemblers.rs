@@ -185,9 +185,10 @@ pub fn assemble_paginated_moth_search_embed<'a>(
         .collect::<Vec<String>>();
 
     if let Some(selected_moth) = selected_moth
-        && let Some(moth_entry) = moths.get_mut(selected_moth) {
-            *moth_entry = format!("**{moth_entry}** ⬅︎");
-        }
+        && let Some(moth_entry) = moths.get_mut(selected_moth)
+    {
+        *moth_entry = format!("**{moth_entry}** ⬅︎");
+    }
 
     serenity::CreateEmbed::default()
         .title(title)

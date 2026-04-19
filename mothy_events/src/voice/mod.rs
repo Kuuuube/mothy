@@ -46,7 +46,6 @@ fn handle_join(new_voice_state: &'_ VoiceState) -> CreateEmbed<'_> {
     } else {
         ("Unknown".to_string(), None)
     };
-    
 
     CreateEmbed::new()
         .author(CreateEmbedAuthor::new(username).icon_url(avatar_url.unwrap_or_default()))
@@ -69,7 +68,6 @@ fn handle_leave<'a>(old_voice_state: &VoiceState, new_voice_state: &VoiceState) 
     } else {
         ("Unknown".to_string(), None)
     };
-    
 
     CreateEmbed::new()
         .author(CreateEmbedAuthor::new(username).icon_url(avatar_url.unwrap_or_default()))
@@ -95,7 +93,6 @@ fn handle_switch<'a>(
     } else {
         ("Unknown".to_string(), None)
     };
-    
 
     CreateEmbed::new()
         .author(CreateEmbedAuthor::new(username).icon_url(avatar_url.unwrap_or_default()))

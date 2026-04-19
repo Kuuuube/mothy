@@ -11,7 +11,6 @@ use crate::helper::{get_channel_name, get_guild_name_override};
 pub async fn on_message(ctx: &Context, msg: &Message, data: Arc<Data>) -> Result<(), Error> {
     let dont_print = false;
     let content = {
-        
         // moth_filter::filter_content(&msg.content, &config.badlist, &config.fixlist);
 
         &msg.content
