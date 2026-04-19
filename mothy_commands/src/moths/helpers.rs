@@ -342,7 +342,8 @@ fn title_case_ascii_mut(input_str: &mut str) {
         let current_whitespace = byte.is_ascii_whitespace() || byte.is_ascii_punctuation();
         if last_whitespace && !current_whitespace {
             *byte = byte.to_ascii_uppercase();
-        } else if byte.is_ascii_alphabetic() {
+        } else {
+            // `to_ascii_lowercase` runs `is_ascii_uppercase` for us, no need to check
             *byte = byte.to_ascii_lowercase();
         }
 
