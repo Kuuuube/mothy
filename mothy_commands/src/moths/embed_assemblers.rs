@@ -151,6 +151,53 @@ pub fn assemble_paginated_moth_search_embed<'a>(
     pagecount: usize,
     selected_moth: Option<usize>,
 ) -> CreateEmbed<'a> {
+    assemble_paginated_search_embed(
+        moths,
+        moth_count,
+        page_number,
+        pagecount,
+        selected_moth,
+        |species_data| {
+            assemble_scientific_name(
+                &species_data.classification.genus,
+                &species_data.classification.specific,
+                species_data.classification.subspecific.as_deref(),
+            )
+        },
+    )
+}
+
+pub fn assemble_paginated_moth_search_embed_named<'a>(
+    moths: &Vec<&SpeciesData>,
+    moth_count: usize,
+    page_number: usize,
+    pagecount: usize,
+    selected_moth: Option<usize>,
+) -> CreateEmbed<'a> {
+    assemble_paginated_search_embed(
+        moths,
+        moth_count,
+        page_number,
+        pagecount,
+        selected_moth,
+        |species_data| {
+            if let Some(common_names) = &species_data.common_names {
+                title_case(common_names.join(", "))
+            } else {
+                return "None".to_string();
+            }
+        },
+    )
+}
+
+fn assemble_paginated_search_embed<'a, F: Fn(&SpeciesData) -> String>(
+    moths: &Vec<&SpeciesData>,
+    moth_count: usize,
+    page_number: usize,
+    pagecount: usize,
+    selected_moth: Option<usize>,
+    display_name_assembler: F,
+) -> CreateEmbed<'a> {
     let title = format!("Search found {moth_count} moths");
 
     let start = page_number * MOTHS_PER_PAGE;
@@ -173,11 +220,7 @@ pub fn assemble_paginated_moth_search_embed<'a>(
         .map(|x| {
             format!(
                 "[{}]({}{})",
-                assemble_scientific_name(
-                    &x.classification.genus,
-                    &x.classification.specific,
-                    x.classification.subspecific.as_deref()
-                ),
+                display_name_assembler(&x),
                 CATALOGUE_OF_LIFE_TAXON_URL,
                 x.catalogue_of_life_taxon_id
             )

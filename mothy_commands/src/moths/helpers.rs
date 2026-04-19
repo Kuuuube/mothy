@@ -33,9 +33,26 @@ pub fn moth_query<'a>(
                     &query_data.subspecific,
                     &moth.classification.subspecific,
                 )
+                || query_data.common_name.is_some() && moth.common_names.is_none()
             {
                 return false;
             }
+            if let Some(query_common_name) = &query_data.common_name
+                && let Some(moth_common_names) = &moth.common_names
+            {
+                if query_data.exact_common_name_search {
+                    return moth_common_names.iter().any(|common_name| {
+                        search_classification_valid(&Some(query_common_name), &Some(common_name))
+                    });
+                } else {
+                    return moth_common_names.iter().any(|common_name| {
+                        common_name
+                            .to_ascii_lowercase()
+                            .contains(&query_common_name.to_ascii_lowercase())
+                    });
+                }
+            }
+
             true
         })
         .collect();
@@ -273,4 +290,60 @@ pub struct MothQuery {
     pub genus: Option<String>,
     pub specific: Option<String>,
     pub subspecific: Option<String>,
+    pub common_name: Option<String>,
+    pub exact_common_name_search: bool,
+}
+
+const SMALL_WORDS: &[(&str, &str)] = &[
+    ("A", "a"),
+    ("An", "an"),
+    ("And", "and"),
+    ("As", "as"),
+    ("At", "at"),
+    ("But", "but"),
+    ("By", "by"),
+    ("En", "en"),
+    ("For", "for"),
+    ("If", "if"),
+    ("In", "in"),
+    ("Of", "of"),
+    ("On", "on"),
+    ("Or", "or"),
+    ("The", "the"),
+    ("To", "to"),
+    ("Via", "via"),
+    ("Vs", "vs"),
+];
+
+pub fn title_case(input_string: String) -> String {
+    let mut input_string_title_naive = input_string;
+    title_case_ascii_mut(&mut input_string_title_naive);
+
+    for small_word in SMALL_WORDS {
+        input_string_title_naive = input_string_title_naive.replace(small_word.0, small_word.1);
+    }
+
+    input_string_title_naive
+}
+
+/// Naive title case, does not correctly handle small words such as `a`, `an`, `the`
+fn title_case_ascii_mut(input_str: &mut str) {
+    let bytes = unsafe { input_str.as_bytes_mut() };
+    let mut last_whitespace = true;
+    for byte in bytes.iter_mut() {
+        // Below 0x80 is invalid when used in a unicode multi byte sequence
+        // This ensures ascii characters cannot be contained in unicode bytes
+        // `is_ascii` is safe even on a byte-by-byte level over a unicode string
+        if !byte.is_ascii() {
+            last_whitespace = false;
+            continue;
+        }
+
+        let current_whitespace = byte.is_ascii_whitespace();
+        if last_whitespace && !current_whitespace {
+            *byte = byte.to_ascii_uppercase();
+        }
+
+        last_whitespace = current_whitespace;
+    }
 }

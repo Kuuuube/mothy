@@ -5,7 +5,6 @@ use crate::{
     Context, Error,
     moths::{embed_assemblers::*, helpers::*, interaction_helpers::*},
 };
-use moth_filter::SpeciesData;
 use poise::serenity_prelude as serenity;
 
 use rand::seq::IndexedRandom;
@@ -205,6 +204,8 @@ pub async fn moth_search(
             genus,
             specific,
             subspecific,
+            common_name: None,
+            exact_common_name_search: false,
         },
     ) else {
         let embed = serenity::CreateEmbed::default().title("Search found 0 moths");
@@ -222,7 +223,57 @@ pub async fn moth_search(
     .await
 }
 
+/// Search for a moth by name
+#[poise::command(
+    rename = "moth-search-name",
+    slash_command,
+    install_context = "Guild|User",
+    interaction_context = "Guild|BotDm|PrivateChannel",
+    category = "Moths",
+    // This command may appear heavy on memory, it is not. All the moth data besides what is actively displayed is borrowed
+    user_cooldown = "10"
+)]
+pub async fn moth_search_named(
+    ctx: Context<'_>,
+    #[description = "The common name for a moth"] name: String,
+    #[rename = "exact-match"]
+    #[flag]
+    exact_match: bool,
+) -> Result<(), Error> {
+    let data = ctx.data();
+    let moth_data = &data.moth_data.moth_data;
+
+    let Ok(moths_found) = moth_query(
+        &moth_data,
+        &MothQuery {
+            superfamily: None,
+            family: None,
+            subfamily: None,
+            tribe: None,
+            subtribe: None,
+            genus: None,
+            specific: None,
+            subspecific: None,
+            common_name: Some(name),
+            exact_common_name_search: exact_match,
+        },
+    ) else {
+        let embed = serenity::CreateEmbed::default().title("Search found 0 moths");
+        ctx.send(poise::CreateReply::default().embed(embed)).await?;
+        return Ok(());
+    };
+
+    return pagination_embed(
+        ctx,
+        &moths_found,
+        MOTHS_PER_PAGE,
+        assemble_paginated_moth_search_embed_named,
+        assemble_moth_embed,
+    )
+    .await;
+}
+
 #[must_use]
-pub fn commands() -> [crate::Command; 3] {
-    [moth(), moth_search(), moth_named()]
+pub fn commands() -> [crate::Command; 4] {
+    [moth(), moth_search(), moth_named(), moth_search_named()]
 }
