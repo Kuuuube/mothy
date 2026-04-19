@@ -194,46 +194,23 @@ pub async fn moth_search(
     }
 
     // wide search
-    let mut moths_found: Vec<&SpeciesData> = moth_data
-        .iter()
-        .filter(|moth| {
-            if !search_classification_valid(&superfamily, &moth.classification.superfamily)
-                || !search_classification_valid(&family, &moth.classification.family)
-                || !search_classification_valid(&subfamily, &moth.classification.subfamily)
-                || !search_classification_valid(&tribe, &moth.classification.tribe)
-                || !search_classification_valid(&subtribe, &moth.classification.subtribe)
-                || !search_classification_valid(&genus, &Some(&moth.classification.genus))
-                || !search_classification_valid(&specific, &Some(&moth.classification.specific))
-                || !search_classification_valid(&subspecific, &moth.classification.subspecific)
-            {
-                return false;
-            }
-            true
-        })
-        .collect();
-
-    let moth_count = moths_found.len();
-
-    if moth_count == 0 {
+    let Ok(moths_found) = moth_query(
+        &moth_data,
+        &MothQuery {
+            superfamily,
+            family,
+            subfamily,
+            tribe,
+            subtribe,
+            genus,
+            specific,
+            subspecific,
+        },
+    ) else {
         let embed = serenity::CreateEmbed::default().title("Search found 0 moths");
         ctx.send(poise::CreateReply::default().embed(embed)).await?;
         return Ok(());
-    }
-
-    moths_found.sort_by(|a, b| {
-        format!(
-            "{} {} {}",
-            a.classification.genus,
-            a.classification.specific,
-            a.classification.subspecific.as_deref().unwrap_or_default()
-        )
-        .cmp(&format!(
-            "{} {} {}",
-            b.classification.genus,
-            b.classification.specific,
-            a.classification.subspecific.as_deref().unwrap_or_default()
-        ))
-    });
+    };
 
     pagination_embed(
         ctx,

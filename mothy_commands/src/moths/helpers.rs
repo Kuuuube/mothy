@@ -1,6 +1,66 @@
-use moth_filter::ButterflyBlacklist;
+use crate::Error;
+
+use moth_filter::{ButterflyBlacklist, SpeciesData};
 
 const BUTTERFLY_SUPERFAMILY: &str = "Papilionoidea";
+
+pub fn moth_query<'a>(
+    moth_data: &'a Vec<SpeciesData>,
+    query_data: &MothQuery,
+) -> Result<Vec<&'a SpeciesData>, Error> {
+    let mut moths_found: Vec<&SpeciesData> = moth_data
+        .iter()
+        .filter(|moth| {
+            if !search_classification_valid(
+                &query_data.superfamily,
+                &moth.classification.superfamily,
+            ) || !search_classification_valid(&query_data.family, &moth.classification.family)
+                || !search_classification_valid(
+                    &query_data.subfamily,
+                    &moth.classification.subfamily,
+                )
+                || !search_classification_valid(&query_data.tribe, &moth.classification.tribe)
+                || !search_classification_valid(&query_data.subtribe, &moth.classification.subtribe)
+                || !search_classification_valid(
+                    &query_data.genus,
+                    &Some(&moth.classification.genus),
+                )
+                || !search_classification_valid(
+                    &query_data.specific,
+                    &Some(&moth.classification.specific),
+                )
+                || !search_classification_valid(
+                    &query_data.subspecific,
+                    &moth.classification.subspecific,
+                )
+            {
+                return false;
+            }
+            true
+        })
+        .collect();
+
+    if moths_found.len() == 0 {
+        return Err(Error::Custom("Search found 0 moths".into()));
+    }
+
+    moths_found.sort_by(|a, b| {
+        format!(
+            "{} {} {}",
+            a.classification.genus,
+            a.classification.specific,
+            a.classification.subspecific.as_deref().unwrap_or_default()
+        )
+        .cmp(&format!(
+            "{} {} {}",
+            b.classification.genus,
+            b.classification.specific,
+            a.classification.subspecific.as_deref().unwrap_or_default()
+        ))
+    });
+
+    Ok(moths_found)
+}
 
 pub fn get_moth_rank_vec(input_strings: &[Option<String>]) -> Vec<String> {
     let mut ranks_vec = Vec::new();
@@ -196,4 +256,15 @@ fn test_is_butterfly() {
             &None
         ) == true
     );
+}
+
+pub struct MothQuery {
+    pub superfamily: Option<String>,
+    pub family: Option<String>,
+    pub subfamily: Option<String>,
+    pub tribe: Option<String>,
+    pub subtribe: Option<String>,
+    pub genus: Option<String>,
+    pub specific: Option<String>,
+    pub subspecific: Option<String>,
 }
