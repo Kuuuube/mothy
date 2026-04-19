@@ -316,7 +316,7 @@ const SMALL_WORDS: &[(&str, &str)] = &[
 ];
 
 pub fn title_case(input_string: String) -> String {
-    let mut input_string_title_naive = input_string;
+    let mut input_string_title_naive = input_string.to_ascii_lowercase();
     title_case_ascii_mut(&mut input_string_title_naive);
 
     for small_word in SMALL_WORDS {
@@ -339,7 +339,7 @@ fn title_case_ascii_mut(input_str: &mut str) {
             continue;
         }
 
-        let current_whitespace = byte.is_ascii_whitespace();
+        let current_whitespace = byte.is_ascii_whitespace() || byte.is_ascii_punctuation();
         if last_whitespace && !current_whitespace {
             *byte = byte.to_ascii_uppercase();
         }
