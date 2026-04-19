@@ -74,17 +74,23 @@ pub fn search_classification_valid<A: AsRef<str>, B: AsRef<str>>(
     search_input: &Option<A>,
     check_against: &Option<B>,
 ) -> bool {
-    if let Some(search_input_string) = &search_input {
-        return check_against
-            .as_ref()
-            .map(|check_against_string| {
-                let check_against_str: &str = check_against_string.as_ref();
-                let search_input_str: &str = search_input_string.as_ref();
-                check_against_str.eq_ignore_ascii_case(search_input_str)
-            })
-            .unwrap_or(false); // search requested on classification but moth doesnt contain classification = invalid (`false`)
+    if search_input.is_none() {
+        return true;
     }
-    true // no search requested (`search_input` == None)
+    if check_against.is_none() {
+        return false;
+    }
+
+    if let Some(search_input_string) = search_input
+        && let Some(check_against_string) = check_against
+        && check_against_string
+            .as_ref()
+            .eq_ignore_ascii_case(search_input_string.as_ref())
+    {
+        return true;
+    }
+
+    false
 }
 
 pub fn assemble_scientific_name(genus: &str, specific: &str, subspecific: Option<&str>) -> String {
