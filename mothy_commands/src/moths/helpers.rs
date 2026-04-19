@@ -350,6 +350,44 @@ fn title_case_ascii_mut(input_str: &mut str) {
     }
 }
 
+#[test]
+fn test_title_case() {
+    let test_cases = vec![
+        ("test", "Test"),
+        ("this is a title", "This Is a Title"),
+        (
+            "a letter a should be capitalized at the start only",
+            "A Letter a Should Be Capitalized at the Start Only",
+        ),
+        (
+            "fabulous green sphinx of kauai",
+            "Fabulous Green Sphinx of Kauai",
+        ),
+        ("TOTALLY UPPERCASE STRING!!!", "Totally Uppercase String!!!"),
+        (
+            "what if the letter \"a\" is quoted?",
+            "What if the Letter \"A\" Is Quoted?",
+        ), // not totally sure about the handling of this one
+        ("silkworm", "Silkworm"),
+        (
+            "?did \"you\" know\" that\' \'some\' moths~ can. swim! underwater?",
+            "?Did \"You\" Know\" That\' \'Some\' Moths~ Can. Swim! Underwater?",
+        ),
+        (
+            "one moth. two moth. three moth.",
+            "One Moth. Two Moth. Three Moth.",
+        ),
+        ("uPdOwNaNdUpDoWn AnDuPdOwN", "Updownandupdown Andupdown"),
+    ];
+
+    for test_case in test_cases {
+        dbg!(test_case);
+        let title_case_string = title_case(test_case.0.to_string());
+        dbg!(&title_case_string);
+        assert!(title_case_string == test_case.1.to_string());
+    }
+}
+
 pub fn dequote(input_str: &str) -> String {
     return input_str
         .trim_start_matches('\'')
