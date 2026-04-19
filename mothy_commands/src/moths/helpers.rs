@@ -347,3 +347,12 @@ fn title_case_ascii_mut(input_str: &mut str) {
         last_whitespace = current_whitespace;
     }
 }
+
+pub fn dequote(input_str: &str) -> String {
+    return input_str
+        .trim_start_matches('\'')
+        .trim_end_matches('\'')
+        .trim_start_matches('\"')
+        .trim_end_matches('\"')
+        .to_string();
+}

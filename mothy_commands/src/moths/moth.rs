@@ -240,6 +240,8 @@ pub async fn moth_search_named(
     #[flag]
     exact_match: bool,
 ) -> Result<(), Error> {
+    let name = dequote(&name);
+
     let data = ctx.data();
     let moth_data = &data.moth_data.moth_data;
 
