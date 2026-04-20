@@ -170,10 +170,9 @@ pub async fn moth_search(
             ctx.send(poise::CreateReply::default().embed(embed)).await?;
         } else {
             let mut capitalized_scientific_name = lowercase_scientific_name;
-            capitalized_scientific_name.get_mut(0..1).map(|x| {
-                let _: () = x.make_ascii_uppercase();
-                ()
-            });
+            if let Some(first_char) = capitalized_scientific_name.get_mut(0..1) {
+                first_char.make_ascii_uppercase();
+            }
 
             let mut embed_text = format!("Failed to find moth `{capitalized_scientific_name}`.");
             if !possible_subspecific_as_specific.is_empty() {
