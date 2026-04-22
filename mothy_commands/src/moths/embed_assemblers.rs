@@ -84,6 +84,18 @@ async fn assemble_moth_embed_fields(
     .join(" -> ");
     fields.push(("Classification".to_string(), moth_rank_flow, false));
 
+    if let Some(distribution) = &moth.distribution && let Some(threat_status) = &distribution.threat_status {
+        let mut threat_status_formatted = match &distribution.reference {
+            Some(reference) => format!("[{}]({})", threat_status, reference),
+            None => threat_status.to_string(),
+        };
+        if let Some(locality) = &distribution.locality {
+            threat_status_formatted = format!("{threat_status_formatted} ({locality})");
+        }
+
+        fields.push(("Threat Status".to_string(), threat_status_formatted, false));
+    }
+
     if let Some(synonyms) = &moth.synonyms {
         let synonyms_formatted = synonyms
             .iter()
