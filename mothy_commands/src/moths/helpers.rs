@@ -339,7 +339,8 @@ fn title_case_ascii_mut(input_str: &mut str) {
             continue;
         }
 
-        let current_whitespace = byte.is_ascii_whitespace() || byte.is_ascii_punctuation();
+        const SINGLE_QUOTE: u8 = 0x27;
+        let current_whitespace = (byte.is_ascii_whitespace() || byte.is_ascii_punctuation()) && *byte != SINGLE_QUOTE;
         if last_whitespace && !current_whitespace {
             *byte = byte.to_ascii_uppercase();
         } else {
@@ -354,6 +355,8 @@ fn title_case_ascii_mut(input_str: &mut str) {
 #[test]
 fn test_title_case() {
     let test_cases = vec![
+        ("", ""),
+        ("a", "A"),
         ("test", "Test"),
         ("this is a title", "This Is a Title"),
         (
@@ -372,13 +375,14 @@ fn test_title_case() {
         ("silkworm", "Silkworm"),
         (
             "?did \"you\" know\" that\' \'some\' moths~ can. swim! underwater?",
-            "?Did \"You\" Know\" That\' \'Some\' Moths~ Can. Swim! Underwater?",
+            "?Did \"You\" Know\" That\' \'some\' Moths~ Can. Swim! Underwater?",
         ),
         (
             "one moth. two moth. three moth.",
             "One Moth. Two Moth. Three Moth.",
         ),
         ("uPdOwNaNdUpDoWn AnDuPdOwN", "Updownandupdown Andupdown"),
+        ("death's-head hawk-moth", "Death's-Head Hawk-Moth"),
     ];
 
     for test_case in test_cases {
